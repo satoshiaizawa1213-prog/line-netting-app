@@ -55,9 +55,8 @@ export default function PaymentReportPage() {
 
   // 傾斜割の各金額プレビュー
   const totalWeight    = selectedList.reduce((s, m) => s + (m.weight ?? 1), 0)
-  const weightedShares = selectedList.map((m, i) => {
-    const base = Math.floor(total * (m.weight ?? 1) / totalWeight)
-    return base
+  const weightedShares = selectedList.map((m) => {
+    return Math.floor(total * (m.weight ?? 1) / totalWeight)
   })
   const weightedRemainder = total - weightedShares.reduce((s, v) => s + v, 0)
 

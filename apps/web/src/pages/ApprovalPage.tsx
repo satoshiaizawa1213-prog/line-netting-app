@@ -62,6 +62,7 @@ export default function ApprovalPage() {
   })
 
   function handleResubmit() {
+    if (!payment) return
     navigate('/payments/new', {
       state: {
         description: payment.description,
