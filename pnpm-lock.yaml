@@ -7,7 +7,17 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.43.4
+        version: 2.101.1
+      hono:
+        specifier: ^4.3.11
+        version: 4.12.10
     devDependencies:
+      '@types/node':
+        specifier: ^20.14.2
+        version: 20.19.39
       typescript:
         specifier: ^5.4.5
         version: 5.9.3
