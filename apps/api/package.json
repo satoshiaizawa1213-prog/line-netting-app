@@ -1,0 +1,21 @@
+{
+  "name": "api",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "node --env-file=.env --import tsx src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.11.1",
+    "@supabase/supabase-js": "^2.43.4",
+    "dotenv": "^16.4.5",
+    "hono": "^4.3.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.2",
+    "tsx": "^4.15.1",
+    "typescript": "^5.4.5"
+  }
+}
