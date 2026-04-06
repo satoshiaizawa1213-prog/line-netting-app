@@ -1,6 +1,15 @@
 @echo off
 chcp 65001 > nul
-title LINE Netting App Launcher
+title LINE Netting App - Local Dev
+
+echo ============================================
+echo   LINE Netting App  [Local Development]
+echo ============================================
+echo   API  : http://localhost:3000
+echo   Web  : http://localhost:5173
+echo   ngrok: http://localhost:4040
+echo ============================================
+echo.
 
 set ROOT=%~dp0
 set PNPM=C:\Users\satos\AppData\Roaming\npm\pnpm.cmd
@@ -19,9 +28,9 @@ echo [3/3] Starting ngrok...
 start "ngrok" cmd /k ngrok http 5173
 
 echo.
-echo Ready!
-echo   API  : http://localhost:3000
-echo   Web  : http://localhost:5173
-echo   ngrok: http://localhost:4040
+echo All servers started!
+echo.
+echo [Production URL]
+echo   https://line-netting-app.vercel.app
 echo.
 cmd /k
