@@ -15,7 +15,8 @@ declare module 'hono' {
 }
 
 /** LINEアクセストークンを検証し、DBユーザーをupsertしてcontextにセット */
-export const authMiddleware = createMiddleware(async (c, next) => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const authMiddleware = createMiddleware<any>(async (c, next) => {
   const token = c.req.header('Authorization')?.replace('Bearer ', '')
   if (!token) return c.json({ error: 'Unauthorized' }, 401)
 
