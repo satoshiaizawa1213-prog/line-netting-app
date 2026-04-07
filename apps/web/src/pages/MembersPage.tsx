@@ -172,7 +172,7 @@ export default function MembersPage() {
                   </button>
                   <button
                     className="btn-secondary"
-                    style={{ padding: '8px 12px' }}
+                    style={{ width: 'auto', padding: '8px 12px' }}
                     onClick={() => setEditWeightId(null)}
                   >
                     ✕
