@@ -54,22 +54,35 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
     pictureUrl?: string
   }
 
-  // DB に upsert
-  const { data, error } = await db
-    .from('users')
-    .upsert(
-      {
-        line_user_id: profile.userId,
-        display_name: profile.displayName,
-        picture_url: profile.pictureUrl ?? null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'line_user_id' }
-    )
-    .select()
-    .single()
+  // DB に upsert（8秒タイムアウト）
+  let data: AuthUser | null = null
+  let dbError: unknown = null
+  try {
+    const result = await Promise.race([
+      db
+        .from('users')
+        .upsert(
+          {
+            line_user_id: profile.userId,
+            display_name: profile.displayName,
+            picture_url: profile.pictureUrl ?? null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'line_user_id' }
+        )
+        .select()
+        .single(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('DB upsert timeout')), 8000)
+      ),
+    ])
+    data = (result as { data: AuthUser | null; error: unknown }).data
+    dbError = (result as { data: AuthUser | null; error: unknown }).error
+  } catch (e) {
+    return c.json({ error: `Auth DB timeout: ${(e as Error).message}` }, 503)
+  }
 
-  if (error || !data) return c.json({ error: 'DB error' }, 500)
+  if (dbError || !data) return c.json({ error: 'DB error' }, 500)
 
   const user = data as AuthUser
   tokenCache.set(token, { user, expiresAt: Date.now() + CACHE_TTL_MS })
