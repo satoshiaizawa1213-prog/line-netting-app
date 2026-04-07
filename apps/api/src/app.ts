@@ -16,6 +16,8 @@ app.post('/ping', (c) => c.json({ ok: true, ts: Date.now() }))
 
 /** 現在ログイン中のユーザー情報を返す */
 app.get('/me', authMiddleware, (c) => c.json(c.get('user')))
+/** テスト用: POST + auth（DBなし） */
+app.post('/me', authMiddleware, (c) => c.json(c.get('user')))
 
 app.route('/groups',      groups)
 app.route('/payments',    payments)

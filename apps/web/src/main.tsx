@@ -99,6 +99,15 @@ function showGroupSetup(): Promise<string> {
         const meResult = await getMe()
         errEl.textContent = `[1/3] 認証OK (${meResult.display_name})`
 
+        // Step 1.5: POST + auth テスト（DBなし）
+        createBtn.textContent = '① POST+Auth…'
+        errEl.textContent = '[1.5/3] POST+Authorization テスト...'
+        const postMeRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/me`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${(await import('./lib/liff')).getAccessToken()}` },
+        })
+        errEl.textContent = `[1.5/3] POST+Auth: ${postMeRes.status} ${postMeRes.ok ? 'OK' : 'NG'}`
+
         // Step 2: グループ作成
         createBtn.textContent = '② グループ作成中…'
         errEl.style.color = '#06C755'
