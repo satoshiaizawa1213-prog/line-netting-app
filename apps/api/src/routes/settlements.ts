@@ -132,11 +132,11 @@ settlements.get('/groups/:groupId/my-tasks', async (c) => {
   return c.json(result)
 })
 
-/** 支払いタスクの完了状態を更新 */
+/** 支払いタスクの完了状態を更新（クエリパラメータで受け取る） */
 settlements.patch('/results/:resultId/paid', async (c) => {
   const { resultId } = c.req.param()
   const user = c.get('user')
-  const { paid } = await c.req.json<{ paid: boolean }>()
+  const paid = c.req.query('paid') === 'true'
 
   // 本人確認
   const { data: result, error: fetchError } = await db
@@ -157,13 +157,12 @@ settlements.patch('/results/:resultId/paid', async (c) => {
   return c.json({ ok: true })
 })
 
-/** 精算を実行 */
+/** 精算を実行（クエリパラメータで受け取る） */
 settlements.post('/', async (c) => {
   const user = c.get('user')
-  const { group_id, method } = await c.req.json<{
-    group_id: string
-    method: 'multilateral' | 'bilateral'
-  }>()
+  const group_id = c.req.query('group_id') ?? ''
+  const method   = (c.req.query('method') ?? 'multilateral') as 'multilateral' | 'bilateral'
+  if (!group_id) return c.json({ error: 'group_id is required' }, 400)
 
   // 承認済み・未精算の payments を取得
   const { data: rawPayments, error: fetchError } = await db

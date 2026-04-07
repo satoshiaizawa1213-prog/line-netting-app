@@ -87,34 +87,8 @@ function showGroupSetup(): Promise<string> {
       errEl.textContent = ''
       const lineGroupId = 'app-' + Date.now()
       try {
-        // Step 0: POST疎通確認（認証なし）
-        createBtn.textContent = '⓪ POST確認中…'
-        errEl.textContent = '[0/3] POST接続テスト...'
-        const pingRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ping`, { method: 'POST' })
-        errEl.textContent = `[0/3] POST OK (${pingRes.status})`
-
-        // Step 1: 認証確認
-        createBtn.textContent = '① 認証中…'
-        errEl.textContent = '[1/3] LINEトークン検証中...'
-        const meResult = await getMe()
-        errEl.textContent = `[1/3] 認証OK (${meResult.display_name})`
-
-        // Step 1.5: POST + auth テスト（DBなし）
-        createBtn.textContent = '① POST+Auth…'
-        errEl.textContent = '[1.5/3] POST+Authorization テスト...'
-        const postMeRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/me`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${(await import('./lib/liff')).getAccessToken()}` },
-        })
-        errEl.textContent = `[1.5/3] POST+Auth: ${postMeRes.status} ${postMeRes.ok ? 'OK' : 'NG'}`
-
-        // Step 2: グループ作成
-        createBtn.textContent = '② グループ作成中…'
-        errEl.style.color = '#06C755'
-        errEl.textContent = '[2/3] グループをDBに登録中...'
+        createBtn.textContent = '作成中…'
         const result = await ensureGroup(lineGroupId, name)
-        errEl.style.color = '#666'
-        errEl.textContent = ''
 
         createdGroupId = result.id
         localStorage.setItem('groupId', createdGroupId)
@@ -126,7 +100,7 @@ function showGroupSetup(): Promise<string> {
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         errEl.style.color = '#E53935'
-        errEl.textContent = `エラー (${createBtn.textContent}): ${msg}`
+        errEl.textContent = `エラー: ${msg}`
         createBtn.disabled = false
         createBtn.textContent = 'グループを作成'
       }

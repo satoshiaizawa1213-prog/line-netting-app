@@ -73,23 +73,26 @@ export function createPayment(payload: {
   note?: string
   splits: Array<{ user_id: string; amount: number }>
 }) {
-  return request<Payment>('/payments', {
-    method: 'POST',
-    body: JSON.stringify(payload),
+  const params = new URLSearchParams({
+    group_id:    payload.group_id,
+    payer_id:    payload.payer_id,
+    amount:      String(payload.amount),
+    description: payload.description,
+    splits:      JSON.stringify(payload.splits),
   })
+  if (payload.note) params.set('note', payload.note)
+  return request<Payment>(`/payments?${params}`, { method: 'POST' })
 }
 
 export function approvePayment(paymentId: string, action: 'approved' | 'rejected', comment?: string) {
-  return request<Payment>(`/payments/${paymentId}/approve`, {
-    method: 'POST',
-    body: JSON.stringify({ action, comment }),
-  })
+  const params = new URLSearchParams({ action })
+  if (comment) params.set('comment', comment)
+  return request<Payment>(`/payments/${paymentId}/approve?${params}`, { method: 'POST' })
 }
 
 export function updateMemberWeight(groupId: string, userId: string, weight: number) {
-  return request<{ ok: boolean }>(`/groups/${groupId}/members/${userId}/weight`, {
+  return request<{ ok: boolean }>(`/groups/${groupId}/members/${userId}/weight?weight=${weight}`, {
     method: 'PATCH',
-    body: JSON.stringify({ weight }),
   })
 }
 
@@ -99,10 +102,7 @@ export function deletePayment(paymentId: string) {
 
 // ─── Settlements ───────────────────────────────────────────
 export function createSettlement(groupId: string, method: NettingMethod) {
-  return request<Settlement>('/settlements', {
-    method: 'POST',
-    body: JSON.stringify({ group_id: groupId, method }),
-  })
+  return request<Settlement>(`/settlements?group_id=${groupId}&method=${method}`, { method: 'POST' })
 }
 
 export function getSettlementHistory(groupId: string) {
@@ -114,8 +114,7 @@ export function getMyPaymentTasks(groupId: string) {
 }
 
 export function updatePaymentTaskPaid(resultId: string, paid: boolean) {
-  return request<{ ok: boolean }>(`/settlements/results/${resultId}/paid`, {
+  return request<{ ok: boolean }>(`/settlements/results/${resultId}/paid?paid=${paid}`, {
     method: 'PATCH',
-    body: JSON.stringify({ paid }),
   })
 }

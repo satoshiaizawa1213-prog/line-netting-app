@@ -5,41 +5,43 @@ import { authMiddleware } from '../lib/auth'
 const payments = new Hono()
 payments.use('*', authMiddleware)
 
-/** 支払い報告を作成 */
+/** 支払い報告を作成（クエリパラメータで受け取る） */
 payments.post('/', async (c) => {
   const user = c.get('user')
-  const body = await c.req.json<{
-    group_id: string
-    payer_id: string
-    amount: number
-    description: string
-    note?: string
-    splits: Array<{ user_id: string; amount: number }>
-  }>()
+  const group_id    = c.req.query('group_id') ?? ''
+  const payer_id    = c.req.query('payer_id') ?? ''
+  const amount      = Number(c.req.query('amount'))
+  const description = c.req.query('description') ?? ''
+  const note        = c.req.query('note') ?? null
+  const splitsRaw   = c.req.query('splits') ?? '[]'
+
+  if (!group_id || !payer_id || !amount || !description) {
+    return c.json({ error: 'Missing required params' }, 400)
+  }
+
+  let splits: Array<{ user_id: string; amount: number }>
+  try {
+    splits = JSON.parse(splitsRaw)
+  } catch {
+    return c.json({ error: 'Invalid splits JSON' }, 400)
+  }
 
   // splitsの合計 = amountを検証
-  const splitsTotal = body.splits.reduce((s, sp) => s + sp.amount, 0)
-  if (splitsTotal !== body.amount) {
+  const splitsTotal = splits.reduce((s, sp) => s + sp.amount, 0)
+  if (splitsTotal !== amount) {
     return c.json({ error: 'splits total must equal amount' }, 400)
   }
 
   const { data: payment, error: paymentError } = await db
     .from('payments')
-    .insert({
-      group_id: body.group_id,
-      reporter_id: user.id,
-      payer_id: body.payer_id,
-      amount: body.amount,
-      description: body.description,
-      note: body.note ?? null,
-    })
+    .insert({ group_id, reporter_id: user.id, payer_id, amount, description, note })
     .select()
     .single()
 
   if (paymentError || !payment) return c.json({ error: 'Failed to create payment' }, 500)
 
   const { error: splitError } = await db.from('payment_splits').insert(
-    body.splits.map((s) => ({ payment_id: payment.id, ...s }))
+    splits.map((s) => ({ payment_id: payment.id, ...s }))
   )
 
   if (splitError) return c.json({ error: 'Failed to create splits' }, 500)
@@ -47,14 +49,13 @@ payments.post('/', async (c) => {
   return c.json(payment, 201)
 })
 
-/** 承認 or 却下 */
+/** 承認 or 却下（クエリパラメータで受け取る） */
 payments.post('/:paymentId/approve', async (c) => {
   const user = c.get('user')
   const { paymentId } = c.req.param()
-  const { action, comment } = await c.req.json<{
-    action: 'approved' | 'rejected'
-    comment?: string
-  }>()
+  const action  = c.req.query('action') as 'approved' | 'rejected' | undefined
+  const comment = c.req.query('comment') ?? undefined
+  if (!action) return c.json({ error: 'action is required' }, 400)
 
   // 支払い報告を取得
   const { data: payment, error: fetchError } = await db

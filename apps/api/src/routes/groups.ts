@@ -137,10 +137,10 @@ groups.get('/:groupId/members', async (c) => {
   return c.json(result)
 })
 
-/** メンバーの傾斜割weight を更新 */
+/** メンバーの傾斜割weight を更新（クエリパラメータで受け取る） */
 groups.patch('/:groupId/members/:userId/weight', async (c) => {
   const { groupId, userId } = c.req.param()
-  const { weight } = await c.req.json<{ weight: number }>()
+  const weight = Number(c.req.query('weight'))
 
   if (weight <= 0) return c.json({ error: 'Weight must be positive' }, 400)
 
