@@ -2,6 +2,10 @@ import liff from '@line/liff'
 
 const LIFF_ID = import.meta.env.VITE_LIFF_ID as string
 
+// initLiff() 直後に取得したトークンをキャッシュ
+// liff.getAccessToken() は状況によって後から null を返すことがあるため
+let _cachedToken: string | null = null
+
 export async function initLiff(): Promise<void> {
   try {
     await liff.init({ liffId: LIFF_ID })
@@ -15,12 +19,14 @@ export async function initLiff(): Promise<void> {
     // login() はリダイレクトするため Promise を resolve させない
     await new Promise<never>(() => {})
   }
+
+  _cachedToken = liff.getAccessToken()
+  if (!_cachedToken) throw new Error('LIFF access token unavailable after login')
 }
 
 export function getAccessToken(): string {
-  const token = liff.getAccessToken()
-  if (!token) throw new Error('No LIFF access token')
-  return token
+  if (!_cachedToken) throw new Error('No LIFF access token')
+  return _cachedToken
 }
 
 export function getLineProfile() {
