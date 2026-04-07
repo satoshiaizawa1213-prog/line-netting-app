@@ -15,23 +15,12 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   ])
 }
 
-/** グループ登録 or 取得（LINEグループIDで一意） */
+/** グループ登録 or 取得（クエリパラメータで受け取る） */
 groups.post('/', async (c) => {
-  // ボディ読み取りにタイムアウトを設定
-  let line_group_id: string
-  let name: string | undefined
-  try {
-    const body = await Promise.race([
-      c.req.json<{ line_group_id: string; name?: string }>(),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('TIMEOUT: body read (5000ms)')), 5000)
-      ),
-    ])
-    line_group_id = body.line_group_id
-    name = body.name
-  } catch (e) {
-    return c.json({ error: `Body read failed: ${(e as Error).message}` }, 400)
-  }
+  // LINE WebView がボディを送信しない問題のためクエリパラメータを使用
+  const line_group_id = c.req.query('gid') ?? ''
+  const name = c.req.query('name') ?? undefined
+  if (!line_group_id) return c.json({ error: 'gid is required' }, 400)
   const user = c.get('user')
   const t0 = Date.now()
 

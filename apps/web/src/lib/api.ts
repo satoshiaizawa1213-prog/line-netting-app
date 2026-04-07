@@ -43,10 +43,9 @@ export function getMe() {
 
 // ─── Groups ────────────────────────────────────────────────
 export function ensureGroup(lineGroupId: string, name?: string) {
-  return request<{ id: string }>('/groups', {
-    method: 'POST',
-    body: JSON.stringify({ line_group_id: lineGroupId, name }),
-  })
+  const params = new URLSearchParams({ gid: lineGroupId })
+  if (name) params.set('name', name)
+  return request<{ id: string }>(`/groups?${params}`, { method: 'POST' })
 }
 
 export function getGroupMembers(groupId: string) {
