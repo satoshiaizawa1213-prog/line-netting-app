@@ -1,10 +1,5 @@
 {
   "buildCommand": "pnpm --filter web build",
   "outputDirectory": "apps/web/dist",
-  "installCommand": "pnpm install",
-  "rewrites": [
-    { "source": "/api/ping", "destination": "/api/ping" },
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
+  "installCommand": "pnpm install"
 }
