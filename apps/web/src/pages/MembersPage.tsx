@@ -37,8 +37,9 @@ export default function MembersPage() {
   })
 
   function copyInviteLink() {
-    const liffId = import.meta.env.VITE_LIFF_ID as string
-    const url    = `https://liff.line.me/${liffId}?gid=${groupId}`
+    const liffId    = import.meta.env.VITE_LIFF_ID as string
+    const joinToken = localStorage.getItem('joinToken') ?? ''
+    const url       = `https://liff.line.me/${liffId}?gid=${groupId}&token=${joinToken}`
     navigator.clipboard.writeText(url)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)

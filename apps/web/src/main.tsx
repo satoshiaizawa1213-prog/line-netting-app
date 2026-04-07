@@ -92,7 +92,8 @@ function showGroupSetup(): Promise<string> {
 
         createdGroupId = result.id
         localStorage.setItem('groupId', createdGroupId)
-        const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}`
+        localStorage.setItem('joinToken', result.join_token)
+        const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}&token=${result.join_token}`
         inviteUrlEl.textContent = inviteUrl
         inviteEl.style.display = 'block'
         gnameEl.style.display = 'none'
@@ -107,7 +108,8 @@ function showGroupSetup(): Promise<string> {
     })
 
     copyBtn.addEventListener('click', () => {
-      const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}`
+      const token = localStorage.getItem('joinToken') ?? ''
+      const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}&token=${token}`
       navigator.clipboard.writeText(inviteUrl).catch(() => {})
       copyBtn.textContent = 'コピーしました！'
       setTimeout(() => { copyBtn.textContent = 'リンクをコピー' }, 2000)
@@ -132,22 +134,24 @@ async function bootstrap() {
       localStorage.removeItem('groupId')
       sessionStorage.clear()
     }
-    const gidFromUrl = urlParams.get('gid')
+    const gidFromUrl   = urlParams.get('gid')
+    const tokenFromUrl = urlParams.get('token') ?? ''
     const ctx = getGroupContext()
     const savedGroupId = localStorage.getItem('groupId')
 
     let dbGroupId: string
 
     if (gidFromUrl) {
-      // 招待リンク経由で参加
+      // 招待リンク経由で参加（join_token を検証）
       dbGroupId = gidFromUrl
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/groups/${gidFromUrl}/join`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${getAccessToken()}`,
-        },
-      })
+      const joinRes = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL}/groups/${gidFromUrl}/join?token=${encodeURIComponent(tokenFromUrl)}`,
+        { method: 'POST', headers: { Authorization: `Bearer ${getAccessToken()}` } }
+      )
+      if (!joinRes.ok) {
+        const err = await joinRes.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(err.error ?? `参加に失敗しました (${joinRes.status})`)
+      }
       localStorage.setItem('groupId', dbGroupId)
     } else if (ctx) {
       // LINEグループコンテキストあり（将来的にBot参加時に対応）

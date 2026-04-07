@@ -6,67 +6,66 @@ import { calcBalances } from '../lib/netting'
 const groups = new Hono()
 groups.use('*', authMiddleware)
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error(`TIMEOUT:${label} (${ms}ms)`)), ms)
-    ),
-  ])
+/** ランダムな join_token を生成（16文字英数字） */
+function generateJoinToken(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+  let token = ''
+  for (let i = 0; i < 16; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return token
+}
+
+/** グループのメンバーシップを確認するヘルパー */
+async function assertMember(groupId: string, userId: string): Promise<boolean> {
+  const { data } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .maybeSingle()
+  return !!data
 }
 
 /** グループ登録 or 取得（クエリパラメータで受け取る） */
 groups.post('/', async (c) => {
-  // LINE WebView がボディを送信しない問題のためクエリパラメータを使用
   const line_group_id = c.req.query('gid') ?? ''
   const name = c.req.query('name') ?? undefined
   if (!line_group_id) return c.json({ error: 'gid is required' }, 400)
   const user = c.get('user')
-  const t0 = Date.now()
 
   // 既存グループを先に検索
-  let existing: { id: string } | null = null
-  try {
-    const res = await withTimeout(
-      db.from('groups').select('id').eq('line_group_id', line_group_id).maybeSingle(),
-      6000, 'SELECT groups'
-    )
-    existing = res.data
-  } catch (e) {
-    return c.json({ error: `Step1 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
-  }
+  const { data: existing } = await db
+    .from('groups')
+    .select('id, join_token')
+    .eq('line_group_id', line_group_id)
+    .maybeSingle()
 
   let groupId: string
+  let joinToken: string
 
   if (existing) {
     groupId = existing.id
+    joinToken = existing.join_token
   } else {
-    try {
-      const res = await withTimeout(
-        db.from('groups').insert({ line_group_id, name: name ?? null }).select('id').single(),
-        6000, 'INSERT groups'
-      )
-      if (res.error || !res.data) return c.json({ error: `Step2 DB error: ${res.error?.message}` }, 500)
-      groupId = res.data.id
-    } catch (e) {
-      return c.json({ error: `Step2 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
-    }
+    joinToken = generateJoinToken()
+    const { data: created, error } = await db
+      .from('groups')
+      .insert({ line_group_id, name: name ?? null, join_token: joinToken })
+      .select('id')
+      .single()
+    if (error || !created) return c.json({ error: 'Failed to create group' }, 500)
+    groupId = created.id
   }
 
   // メンバー登録
-  try {
-    await withTimeout(
-      db.from('group_members').upsert(
-        { group_id: groupId, user_id: user.id, is_active: true },
-        { onConflict: 'group_id,user_id' }
-      ),
-      6000, 'UPSERT group_members'
-    )
-  } catch (e) {
-    return c.json({ error: `Step3 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
-  }
+  await db.from('group_members').upsert(
+    { group_id: groupId, user_id: user.id, is_active: true },
+    { onConflict: 'group_id,user_id' }
+  )
 
-  return c.json({ id: groupId, ms: Date.now() - t0 })
+  return c.json({ id: groupId, join_token: joinToken })
 })
 
 /** メンバーを削除（is_active = false） */
@@ -74,7 +73,7 @@ groups.delete('/:groupId/members/:userId', async (c) => {
   const { groupId, userId } = c.req.param()
   const me = c.get('user')
 
-  // 自分自身は削除不可
+  if (!(await assertMember(groupId, me.id))) return c.json({ error: 'Forbidden' }, 403)
   if (userId === me.id) return c.json({ error: 'Cannot remove yourself' }, 400)
 
   const { error } = await db
@@ -87,13 +86,20 @@ groups.delete('/:groupId/members/:userId', async (c) => {
   return c.json({ ok: true })
 })
 
-/** グループに参加（招待リンク経由） */
+/** グループに参加（招待リンク経由） — join_token で検証 */
 groups.post('/:groupId/join', async (c) => {
   const { groupId } = c.req.param()
+  const token = c.req.query('token') ?? ''
   const user = c.get('user')
 
-  const { data: group } = await db.from('groups').select('id').eq('id', groupId).maybeSingle()
+  const { data: group } = await db
+    .from('groups')
+    .select('id, join_token')
+    .eq('id', groupId)
+    .maybeSingle()
+
   if (!group) return c.json({ error: 'Group not found' }, 404)
+  if (!token || group.join_token !== token) return c.json({ error: 'Invalid invite token' }, 403)
 
   await db.from('group_members').upsert(
     { group_id: groupId, user_id: user.id, is_active: true },
@@ -106,6 +112,9 @@ groups.post('/:groupId/join', async (c) => {
 /** グループメンバー一覧 */
 groups.get('/:groupId/members', async (c) => {
   const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
 
   const { data: memberRows, error: memberError } = await db
     .from('group_members')
@@ -140,8 +149,10 @@ groups.get('/:groupId/members', async (c) => {
 /** メンバーの傾斜割weight を更新（クエリパラメータで受け取る） */
 groups.patch('/:groupId/members/:userId/weight', async (c) => {
   const { groupId, userId } = c.req.param()
+  const user = c.get('user')
   const weight = Number(c.req.query('weight'))
 
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
   if (weight <= 0) return c.json({ error: 'Weight must be positive' }, 400)
 
   const { error } = await db
@@ -157,6 +168,9 @@ groups.patch('/:groupId/members/:userId/weight', async (c) => {
 /** グループ残高 */
 groups.get('/:groupId/balance', async (c) => {
   const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
 
   const { data, error } = await db
     .from('payments')
@@ -180,8 +194,10 @@ groups.get('/:groupId/balance', async (c) => {
 /** グループの支払い報告一覧 */
 groups.get('/:groupId/payments', async (c) => {
   const { groupId } = c.req.param()
+  const user = c.get('user')
 
-  // payments を取得
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
+
   const { data: paymentRows, error } = await db
     .from('payments')
     .select('id, reporter_id, payer_id, amount, description, note, status, settled, created_at')
@@ -194,19 +210,16 @@ groups.get('/:groupId/payments', async (c) => {
 
   const paymentIds = paymentRows.map((p: { id: string }) => p.id)
 
-  // splits を取得
   const { data: splitRows } = await db
     .from('payment_splits')
     .select('payment_id, user_id, amount')
     .in('payment_id', paymentIds)
 
-  // approvals を取得
   const { data: approvalRows } = await db
     .from('approvals')
     .select('payment_id, user_id, action, comment')
     .in('payment_id', paymentIds)
 
-  // ユーザーIDをまとめて取得
   const allUserIds = new Set<string>()
   paymentRows.forEach((p: { reporter_id: string; payer_id: string }) => {
     allUserIds.add(p.reporter_id)
@@ -220,7 +233,6 @@ groups.get('/:groupId/payments', async (c) => {
 
   const userMap = new Map((userRows ?? []).map((u: { id: string }) => [u.id, u]))
 
-  // 組み立て
   const result = paymentRows.map((p: {
     id: string; reporter_id: string; payer_id: string;
     amount: number; description: string; note: string | null; status: string;
