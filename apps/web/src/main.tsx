@@ -87,16 +87,22 @@ function showGroupSetup(): Promise<string> {
       errEl.textContent = ''
       const lineGroupId = 'app-' + Date.now()
       try {
+        // Step 0: POST疎通確認（認証なし）
+        createBtn.textContent = '⓪ POST確認中…'
+        errEl.textContent = '[0/3] POST接続テスト...'
+        const pingRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/ping`, { method: 'POST' })
+        errEl.textContent = `[0/3] POST OK (${pingRes.status})`
+
         // Step 1: 認証確認
         createBtn.textContent = '① 認証中…'
-        errEl.textContent = '[1/2] LINEトークン検証中...'
+        errEl.textContent = '[1/3] LINEトークン検証中...'
         const meResult = await getMe()
-        errEl.textContent = `[1/2] 認証OK (${meResult.display_name})`
+        errEl.textContent = `[1/3] 認証OK (${meResult.display_name})`
 
         // Step 2: グループ作成
         createBtn.textContent = '② グループ作成中…'
         errEl.style.color = '#06C755'
-        errEl.textContent = '[2/2] グループをDBに登録中...'
+        errEl.textContent = '[2/3] グループをDBに登録中...'
         const result = await ensureGroup(lineGroupId, name)
         errEl.style.color = '#666'
         errEl.textContent = ''
