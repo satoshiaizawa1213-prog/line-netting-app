@@ -6,39 +6,64 @@ import { calcBalances } from '../lib/netting'
 const groups = new Hono()
 groups.use('*', authMiddleware)
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`TIMEOUT:${label} (${ms}ms)`)), ms)
+    ),
+  ])
+}
+
 /** グループ登録 or 取得（LINEグループIDで一意） */
 groups.post('/', async (c) => {
   const { line_group_id, name } = await c.req.json<{ line_group_id: string; name?: string }>()
   const user = c.get('user')
+  const t0 = Date.now()
 
   // 既存グループを先に検索
-  const { data: existing } = await db
-    .from('groups')
-    .select('id')
-    .eq('line_group_id', line_group_id)
-    .maybeSingle()
+  let existing: { id: string } | null = null
+  try {
+    const res = await withTimeout(
+      db.from('groups').select('id').eq('line_group_id', line_group_id).maybeSingle(),
+      6000, 'SELECT groups'
+    )
+    existing = res.data
+  } catch (e) {
+    return c.json({ error: `Step1 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
+  }
 
   let groupId: string
 
   if (existing) {
     groupId = existing.id
   } else {
-    const { data: created, error } = await db
-      .from('groups')
-      .insert({ line_group_id, name: name ?? null })
-      .select('id')
-      .single()
-    if (error || !created) return c.json({ error: 'Failed to create group' }, 500)
-    groupId = created.id
+    try {
+      const res = await withTimeout(
+        db.from('groups').insert({ line_group_id, name: name ?? null }).select('id').single(),
+        6000, 'INSERT groups'
+      )
+      if (res.error || !res.data) return c.json({ error: `Step2 DB error: ${res.error?.message}` }, 500)
+      groupId = res.data.id
+    } catch (e) {
+      return c.json({ error: `Step2 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
+    }
   }
 
   // メンバー登録
-  await db.from('group_members').upsert(
-    { group_id: groupId, user_id: user.id, is_active: true },
-    { onConflict: 'group_id,user_id' }
-  )
+  try {
+    await withTimeout(
+      db.from('group_members').upsert(
+        { group_id: groupId, user_id: user.id, is_active: true },
+        { onConflict: 'group_id,user_id' }
+      ),
+      6000, 'UPSERT group_members'
+    )
+  } catch (e) {
+    return c.json({ error: `Step3 failed (${Date.now()-t0}ms): ${(e as Error).message}` }, 500)
+  }
 
-  return c.json({ id: groupId })
+  return c.json({ id: groupId, ms: Date.now() - t0 })
 })
 
 /** メンバーを削除（is_active = false） */
