@@ -48,6 +48,10 @@ export function ensureGroup(lineGroupId: string, name?: string) {
   return request<{ id: string; join_token: string }>(`/groups?${params}`, { method: 'POST' })
 }
 
+export function getGroupInfo(groupId: string) {
+  return request<{ id: string; name: string | null; created_at: string }>(`/groups/${groupId}`)
+}
+
 export function getGroupMembers(groupId: string) {
   return request<User[]>(`/groups/${groupId}/members`)
 }

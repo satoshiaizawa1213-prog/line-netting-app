@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getGroupBalance, getPayments } from '@/lib/api'
+import { getGroupBalance, getPayments, getGroupInfo } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import type { Payment, GroupBalance } from '@/types'
 
@@ -16,6 +16,11 @@ export default function HomePage() {
   }
 
   const { pullY, triggered } = usePullToRefresh(reload)
+
+  const { data: groupInfo } = useQuery({
+    queryKey: ['group', groupId],
+    queryFn: () => getGroupInfo(groupId),
+  })
 
   const { data: balances = [], isLoading: balanceLoading } = useQuery<GroupBalance[]>({
     queryKey: ['balance', groupId],
@@ -48,8 +53,10 @@ export default function HomePage() {
         </div>
       )}
       <div className="page-header" style={{ justifyContent: 'space-between' }}>
-        <span>🏠 グループ精算</span>
-        <button onClick={reload} style={{ width: 'auto', padding: '4px 10px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          🏠 {groupInfo?.name ?? 'グループ精算'}
+        </span>
+        <button onClick={reload} style={{ width: 'auto', padding: '4px 10px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.85rem', color: 'var(--color-text-sub)', flexShrink: 0 }}>
           ↻ 更新
         </button>
       </div>

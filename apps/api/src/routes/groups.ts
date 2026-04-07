@@ -109,6 +109,23 @@ groups.post('/:groupId/join', async (c) => {
   return c.json({ id: groupId })
 })
 
+/** グループ情報取得 */
+groups.get('/:groupId', async (c) => {
+  const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
+
+  const { data, error } = await db
+    .from('groups')
+    .select('id, name, created_at')
+    .eq('id', groupId)
+    .single()
+
+  if (error || !data) return c.json({ error: 'Group not found' }, 404)
+  return c.json(data)
+})
+
 /** グループメンバー一覧 */
 groups.get('/:groupId/members', async (c) => {
   const { groupId } = c.req.param()
