@@ -113,7 +113,7 @@ groups.get('/:groupId/members', async (c) => {
     .eq('group_id', groupId)
     .eq('is_active', true)
 
-  if (memberError) return c.json({ error: `DB error: ${memberError.message} (code: ${memberError.code})` }, 500)
+  if (memberError) return c.json({ error: 'DB error' }, 500)
 
   const userIds = (memberRows ?? []).map((r: { user_id: string }) => r.user_id)
   if (userIds.length === 0) return c.json([])
