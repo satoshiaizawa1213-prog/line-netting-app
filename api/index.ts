@@ -1,11 +1,6 @@
-import { handle } from 'hono/vercel'
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import app from '../apps/api/src/app'
+import { IncomingMessage, ServerResponse } from 'http'
 
-const root = new Hono()
-root.use('*', cors({ origin: '*' }))
-root.get('/api/health', (c) => c.json({ ok: true }))
-root.route('/api', app)
-
-export default handle(root)
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' })
+  res.end(JSON.stringify({ ok: true, url: req.url, method: req.method }))
+}
