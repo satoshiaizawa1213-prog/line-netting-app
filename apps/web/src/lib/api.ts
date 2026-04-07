@@ -11,19 +11,29 @@ import type {
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${getAccessToken()}`,
-      ...init?.headers,
-    },
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error ?? 'API error')
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 30000)
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${getAccessToken()}`,
+        ...init?.headers,
+      },
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error(err.error ?? `API error ${res.status}`)
+    }
+    return res.json() as Promise<T>
+  } catch (e) {
+    if ((e as Error).name === 'AbortError') throw new Error('タイムアウト: サーバーが応答しませんでした')
+    throw e
+  } finally {
+    clearTimeout(timer)
   }
-  return res.json() as Promise<T>
 }
 
 // ─── Me ────────────────────────────────────────────────────

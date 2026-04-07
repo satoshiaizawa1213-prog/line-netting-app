@@ -14,16 +14,38 @@ declare module 'hono' {
   }
 }
 
+// トークン → AuthUser のインメモリキャッシュ（同一インスタンス内5分有効）
+const tokenCache = new Map<string, { user: AuthUser; expiresAt: number }>()
+const CACHE_TTL_MS = 5 * 60 * 1000
+
 /** LINEアクセストークンを検証し、DBユーザーをupsertしてcontextにセット */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = createMiddleware<any>(async (c, next) => {
   const token = c.req.header('Authorization')?.replace('Bearer ', '')
   if (!token) return c.json({ error: 'Unauthorized' }, 401)
 
-  // LINE プロフィールAPIでトークンを検証
-  const profileRes = await fetch('https://api.line.me/v2/profile', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
+  // キャッシュヒット確認（同一インスタンスへの連続リクエストで有効）
+  const cached = tokenCache.get(token)
+  if (cached && cached.expiresAt > Date.now()) {
+    c.set('user', cached.user)
+    await next()
+    return
+  }
+
+  // LINE プロフィールAPIでトークンを検証（8秒タイムアウト）
+  const ac = new AbortController()
+  const t = setTimeout(() => ac.abort(), 8000)
+  let profileRes: Response
+  try {
+    profileRes = await fetch('https://api.line.me/v2/profile', {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: ac.signal,
+    })
+  } catch {
+    return c.json({ error: 'Auth timeout' }, 503)
+  } finally {
+    clearTimeout(t)
+  }
   if (!profileRes.ok) return c.json({ error: 'Invalid LINE token' }, 401)
 
   const profile = await profileRes.json() as {
@@ -49,6 +71,8 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
 
   if (error || !data) return c.json({ error: 'DB error' }, 500)
 
-  c.set('user', data as AuthUser)
+  const user = data as AuthUser
+  tokenCache.set(token, { user, expiresAt: Date.now() + CACHE_TTL_MS })
+  c.set('user', user)
   await next()
 })

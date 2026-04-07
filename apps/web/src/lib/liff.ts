@@ -3,11 +3,17 @@ import liff from '@line/liff'
 const LIFF_ID = import.meta.env.VITE_LIFF_ID as string
 
 export async function initLiff(): Promise<void> {
-  await liff.init({ liffId: LIFF_ID })
+  try {
+    await liff.init({ liffId: LIFF_ID })
+  } catch (e: unknown) {
+    const err = e as { code?: string; message?: string }
+    throw new Error(`liff.init failed: code=${err?.code} msg=${err?.message} liffId=${LIFF_ID}`)
+  }
 
   if (!liff.isLoggedIn()) {
     liff.login()
-    // login() はリダイレクトするため、以降の処理は実行されない
+    // login() はリダイレクトするため Promise を resolve させない
+    await new Promise<never>(() => {})
   }
 }
 
