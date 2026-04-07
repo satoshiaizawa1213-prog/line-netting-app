@@ -23,7 +23,7 @@ export default function PaymentReportPage() {
 
   const resubmit = location.state as ResubmitState | null
 
-  const { data: members = [], isLoading } = useQuery<User[]>({
+  const { data: members = [], isLoading, isError, error } = useQuery<User[]>({
     queryKey: ['members', groupId],
     queryFn: () => getGroupMembers(groupId),
   })
@@ -117,6 +117,17 @@ export default function PaymentReportPage() {
 
   if (isLoading) {
     return <div className="page"><div className="page-header">← {pageTitle}</div><p style={{ color: 'var(--color-text-sub)' }}>読み込み中...</p></div>
+  }
+
+  if (isError) {
+    return (
+      <div className="page">
+        <div className="page-header">← {pageTitle}</div>
+        <p style={{ color: 'var(--color-danger)', padding: 16, fontSize: '0.85rem', wordBreak: 'break-all' }}>
+          メンバー取得エラー (groupId: {groupId || '空'})<br />{(error as Error)?.message}
+        </p>
+      </div>
+    )
   }
 
   return (
