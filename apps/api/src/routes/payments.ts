@@ -10,20 +10,42 @@ payments.post('/', async (c) => {
   const user = c.get('user')
   const group_id    = c.req.query('group_id') ?? ''
   const payer_id    = c.req.query('payer_id') ?? ''
-  const amount      = Number(c.req.query('amount'))
+  const amountRaw   = c.req.query('amount') ?? ''
   const description = c.req.query('description') ?? ''
   const note        = c.req.query('note') ?? null
   const splitsRaw   = c.req.query('splits') ?? '[]'
 
-  if (!group_id || !payer_id || !amount || !description) {
+  if (!group_id || !payer_id || !amountRaw || !description) {
     return c.json({ error: 'Missing required params' }, 400)
+  }
+
+  // amount バリデーション（正整数・上限100万円）
+  const amount = Number(amountRaw)
+  if (!Number.isInteger(amount) || amount <= 0) {
+    return c.json({ error: 'amount must be a positive integer' }, 400)
+  }
+  if (amount > 1_000_000) {
+    return c.json({ error: 'amount must be 1,000,000 or less' }, 400)
+  }
+
+  // description 長さチェック
+  if (description.length > 100) {
+    return c.json({ error: 'description must be 100 characters or less' }, 400)
   }
 
   let splits: Array<{ user_id: string; amount: number }>
   try {
     splits = JSON.parse(splitsRaw)
+    if (!Array.isArray(splits)) throw new Error()
   } catch {
     return c.json({ error: 'Invalid splits JSON' }, 400)
+  }
+
+  // splits 各要素のバリデーション
+  for (const s of splits) {
+    if (!s.user_id || !Number.isInteger(s.amount) || s.amount <= 0) {
+      return c.json({ error: 'Invalid split: user_id and positive integer amount required' }, 400)
+    }
   }
 
   // splitsの合計 = amountを検証
