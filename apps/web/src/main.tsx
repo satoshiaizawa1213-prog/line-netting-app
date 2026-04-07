@@ -93,7 +93,8 @@ function showGroupSetup(): Promise<string> {
         createdGroupId = result.id
         localStorage.setItem('groupId', createdGroupId)
         localStorage.setItem('joinToken', result.join_token)
-        const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}&token=${result.join_token}`
+        const liffId = import.meta.env.VITE_LIFF_ID as string
+        const inviteUrl = `https://liff.line.me/${liffId}?gid=${createdGroupId}&token=${result.join_token}`
         inviteUrlEl.textContent = inviteUrl
         inviteEl.style.display = 'block'
         gnameEl.style.display = 'none'
@@ -109,7 +110,8 @@ function showGroupSetup(): Promise<string> {
 
     copyBtn.addEventListener('click', () => {
       const token = localStorage.getItem('joinToken') ?? ''
-      const inviteUrl = `${window.location.origin}/?gid=${createdGroupId}&token=${token}`
+      const liffId = import.meta.env.VITE_LIFF_ID as string
+      const inviteUrl = `https://liff.line.me/${liffId}?gid=${createdGroupId}&token=${token}`
       navigator.clipboard.writeText(inviteUrl).catch(() => {})
       copyBtn.textContent = 'コピーしました！'
       setTimeout(() => { copyBtn.textContent = 'リンクをコピー' }, 2000)
