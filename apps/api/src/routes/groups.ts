@@ -17,7 +17,21 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
 
 /** グループ登録 or 取得（LINEグループIDで一意） */
 groups.post('/', async (c) => {
-  const { line_group_id, name } = await c.req.json<{ line_group_id: string; name?: string }>()
+  // ボディ読み取りにタイムアウトを設定
+  let line_group_id: string
+  let name: string | undefined
+  try {
+    const body = await Promise.race([
+      c.req.json<{ line_group_id: string; name?: string }>(),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('TIMEOUT: body read (5000ms)')), 5000)
+      ),
+    ])
+    line_group_id = body.line_group_id
+    name = body.name
+  } catch (e) {
+    return c.json({ error: `Body read failed: ${(e as Error).message}` }, 400)
+  }
   const user = c.get('user')
   const t0 = Date.now()
 
