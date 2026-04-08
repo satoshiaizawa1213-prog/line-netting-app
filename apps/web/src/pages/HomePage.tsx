@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getGroupBalance, getPayments, getGroupInfo, getProposals } from '@/lib/api'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { Payment, GroupBalance, SettlementProposal } from '@/types'
@@ -43,6 +44,23 @@ export default function HomePage() {
   const pending   = payments.filter((p) => p.status === 'pending')
   const approved  = payments.filter((p) => p.status === 'approved')
   const rejected  = payments.filter((p) => p.status === 'rejected')
+
+  // 自分がまだ承認していない pending のみ一括承認対象
+  const myPending = pending.filter(
+    (p) => p.reporter_id !== myUserId && p.my_approval == null
+  )
+  const [bulkDone, setBulkDone] = useState(false)
+
+  const bulkMutation = useMutation({
+    mutationFn: () =>
+      Promise.all(myPending.map((p) => approvePayment(p.id, 'approved'))),
+    onSuccess: () => {
+      setBulkDone(true)
+      qc.invalidateQueries({ queryKey: ['payments', groupId] })
+      qc.invalidateQueries({ queryKey: ['balance',  groupId] })
+      setTimeout(() => setBulkDone(false), 2000)
+    },
+  })
 
   return (
     <div className="page" style={{ paddingBottom: 24, gap: 16 }}>
@@ -173,7 +191,26 @@ export default function HomePage() {
       {/* 承認待ち */}
       {!paymentsLoading && pending.length > 0 && (
         <section>
-          <div className="section-title">承認待ち ({pending.length})</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <div className="section-title" style={{ marginBottom: 0 }}>承認待ち ({pending.length})</div>
+            {myPending.length > 1 && (
+              <button
+                onClick={() => bulkMutation.mutate()}
+                disabled={bulkMutation.isPending || bulkDone}
+                style={{
+                  width: 'auto', padding: '5px 14px', fontSize: '0.78rem', fontWeight: 700,
+                  background: bulkDone ? 'var(--color-primary)' : '#fff',
+                  color: bulkDone ? '#fff' : 'var(--color-primary)',
+                  border: '1.5px solid var(--color-primary)',
+                  borderRadius: 999,
+                  boxShadow: bulkDone ? '0 2px 8px rgba(6,199,85,0.3)' : 'none',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {bulkDone ? '✅ 承認しました' : bulkMutation.isPending ? '承認中…' : `✅ ${myPending.length}件まとめて承認`}
+              </button>
+            )}
+          </div>
           <div className="card" style={{ padding: '4px 16px' }}>
             {pending.map((p, i) => (
               <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === pending.length - 1} />
