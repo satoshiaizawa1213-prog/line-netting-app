@@ -64,6 +64,8 @@ export default function PaymentReportPage() {
   const canSubmit = description.trim() !== '' && total > 0 && selectedList.length > 0 && isCustomValid
 
   const [submitted, setSubmitted] = useState<{ description: string; amount: number } | null>(null)
+  const [shareError, setShareError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const mutation = useMutation({
     mutationFn: createPayment,
@@ -77,12 +79,28 @@ export default function PaymentReportPage() {
     },
   })
 
-  async function handleShare() {
-    if (!submitted) return
+  function buildShareText() {
+    if (!submitted) return ''
     const liffUrl = `https://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
-    const text = `💸 支払いを報告しました\n\n${submitted.description}：¥${submitted.amount.toLocaleString()}\n\n承認をお願いします 👇\n${liffUrl}`
-    await shareToLine(text)
-    navigate('/')
+    return `💸 支払いを報告しました\n\n${submitted.description}：¥${submitted.amount.toLocaleString()}\n\n承認をお願いします 👇\n${liffUrl}`
+  }
+
+  async function handleShare() {
+    setShareError(null)
+    const result = await shareToLine(buildShareText())
+    if (result.status === 'sent') {
+      navigate('/')
+    } else if (result.status === 'cancelled') {
+      // キャンセルはそのまま画面に留まる
+    } else {
+      setShareError(result.message ?? '通知の送信に失敗しました')
+    }
+  }
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(buildShareText()).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   function buildSplits() {
@@ -141,9 +159,19 @@ export default function PaymentReportPage() {
           <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginBottom: 12, lineHeight: 1.6 }}>
             LINE グループに承認依頼を送りましょう。タップするとシェア画面が開きます。
           </div>
-          <button className="btn-primary" onClick={handleShare}>
+          <button className="btn-primary" onClick={handleShare} style={{ marginBottom: 8 }}>
             LINE グループに通知する
           </button>
+          {shareError && (
+            <>
+              <p style={{ color: 'var(--color-danger)', fontSize: '0.78rem', margin: '4px 0 10px', lineHeight: 1.5 }}>
+                ⚠️ {shareError}
+              </p>
+              <button className="btn-secondary" onClick={handleCopy} style={{ fontSize: '0.85rem' }}>
+                {copied ? '✅ コピーしました' : '📋 メッセージをコピーする'}
+              </button>
+            </>
+          )}
         </div>
 
         <button className="btn-ghost" style={{ width: '100%', color: 'var(--color-text-sub)' }} onClick={() => navigate('/')}>

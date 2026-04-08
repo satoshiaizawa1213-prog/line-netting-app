@@ -21,16 +21,30 @@ export default function SettlementPage() {
   const hasPending = proposals.length > 0
 
   const [proposed, setProposed] = useState(false)
+  const [shareError, setShareError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
 
   const mutation = useMutation({
     mutationFn: () => createProposal(groupId, method),
     onSuccess: () => setProposed(true),
   })
 
+  const shareText = `🤝 精算が提案されました。\n\nアプリを開いて承認してください 👇\nhttps://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
+
   async function handleShare() {
-    const liffUrl = `https://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
-    await shareToLine(`🤝 精算が提案されました。\n\nアプリを開いて承認してください 👇\n${liffUrl}`)
-    navigate('/')
+    setShareError(null)
+    const result = await shareToLine(shareText)
+    if (result.status === 'sent') {
+      navigate('/')
+    } else if (result.status !== 'cancelled') {
+      setShareError(result.message ?? '通知の送信に失敗しました')
+    }
+  }
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(shareText).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   return (
@@ -55,9 +69,19 @@ export default function SettlementPage() {
             <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginBottom: 12, lineHeight: 1.6 }}>
               LINE グループに承認依頼を送りましょう。タップするとシェア画面が開きます。
             </div>
-            <button className="btn-primary" onClick={handleShare}>
+            <button className="btn-primary" onClick={handleShare} style={{ marginBottom: 8 }}>
               LINE グループに通知する
             </button>
+            {shareError && (
+              <>
+                <p style={{ color: 'var(--color-danger)', fontSize: '0.78rem', margin: '4px 0 10px', lineHeight: 1.5 }}>
+                  ⚠️ {shareError}
+                </p>
+                <button className="btn-secondary" onClick={handleCopy} style={{ fontSize: '0.85rem' }}>
+                  {copied ? '✅ コピーしました' : '📋 メッセージをコピーする'}
+                </button>
+              </>
+            )}
           </div>
           <button className="btn-ghost" style={{ color: 'var(--color-text-sub)' }} onClick={() => navigate('/')}>
             通知せずにホームへ

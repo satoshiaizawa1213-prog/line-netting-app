@@ -55,15 +55,25 @@ export async function shareSettlementResult(text: string): Promise<boolean> {
 
 /**
  * shareTargetPicker でメッセージを LINE チャット/グループに共有する。
- * 友だち追加不要でどのトークルームにも送れる。
- * 戻り値: 'sent' | 'cancelled' | 'unavailable'
+ * 戻り値:
+ *   'sent'        - 送信完了
+ *   'cancelled'   - ユーザーがキャンセル
+ *   'unavailable' - LINE Developers で Share Target Picker が未有効
+ *   'error'       - 予期せぬエラー（メッセージ付き）
  */
-export async function shareToLine(text: string): Promise<'sent' | 'cancelled' | 'unavailable'> {
-  if (!liff.isApiAvailable('shareTargetPicker')) return 'unavailable'
+export async function shareToLine(
+  text: string
+): Promise<{ status: 'sent' | 'cancelled' | 'unavailable' | 'error'; message?: string }> {
+  if (!liff.isApiAvailable('shareTargetPicker')) {
+    return {
+      status: 'unavailable',
+      message: 'Share Target Picker が有効になっていません。LINE Developers Console で LIFF アプリの「Share target picker」を ON にしてください。',
+    }
+  }
   try {
     const result = await liff.shareTargetPicker([{ type: 'text', text }], { isMultiple: false })
-    return result?.status === 'success' ? 'sent' : 'cancelled'
-  } catch {
-    return 'cancelled'
+    return { status: result?.status === 'success' ? 'sent' : 'cancelled' }
+  } catch (e) {
+    return { status: 'error', message: String(e) }
   }
 }
