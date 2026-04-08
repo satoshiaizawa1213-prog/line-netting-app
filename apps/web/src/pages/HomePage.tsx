@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { Payment, GroupBalance, SettlementProposal } from '@/types'
 
 export default function HomePage() {
@@ -16,7 +17,7 @@ export default function HomePage() {
     qc.invalidateQueries({ queryKey: ['proposals', groupId] })
   }
 
-  const { pullY, triggered } = usePullToRefresh(reload)
+  const { pullY, pullState } = usePullToRefresh(reload)
 
   const { data: groupInfo } = useQuery({
     queryKey: ['group', groupId],
@@ -45,23 +46,8 @@ export default function HomePage() {
 
   return (
     <div className="page" style={{ paddingBottom: 24, gap: 16 }}>
-      {/* プル・トゥ・リフレッシュ */}
-      {pullY > 0 && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-          display: 'flex', justifyContent: 'center', alignItems: 'center',
-          height: Math.min(pullY, 52),
-          background: 'rgba(255,255,255,0.95)',
-          backdropFilter: 'blur(8px)',
-          color: triggered ? 'var(--color-primary)' : 'var(--color-text-sub)',
-          fontSize: '0.82rem',
-          fontWeight: 600,
-          transition: 'color 0.2s',
-          borderBottom: '1px solid var(--color-border)',
-        }}>
-          {triggered ? '↑ 離して更新' : '↓ 引っ張って更新'}
-        </div>
-      )}
+      {/* プル・トゥ・リフレッシュ インジケーター */}
+      <PullRefreshIndicator pullY={pullY} pullState={pullState} />
 
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4 }}>
