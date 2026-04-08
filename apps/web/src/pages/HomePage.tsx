@@ -125,7 +125,7 @@ export default function HomePage() {
           disabled={approved.length === 0}
           style={approved.length > 0 ? { borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : {}}
         >
-          <span className="icon">精</span>
+          <span className="icon">🤝</span>
           <span>精算する{approved.length > 0 ? ` (${approved.length})` : ''}</span>
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/my-payments')}>
