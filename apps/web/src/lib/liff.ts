@@ -54,20 +54,39 @@ export async function shareSettlementResult(text: string): Promise<boolean> {
 }
 
 /**
- * shareTargetPicker でメッセージを LINE チャット/グループに共有する。
+ * LINE にメッセージを送信する。
+ *
+ * 優先順位:
+ *   1. グループ/トークルームから開かれている場合 → sendMessages() でそのチャットに直送
+ *   2. それ以外 → shareTargetPicker() で送信先を選択
+ *
  * 戻り値:
  *   'sent'        - 送信完了
- *   'cancelled'   - ユーザーがキャンセル
- *   'unavailable' - LINE Developers で Share Target Picker が未有効
- *   'error'       - 予期せぬエラー（メッセージ付き）
+ *   'cancelled'   - ユーザーがキャンセル（picker のみ）
+ *   'unavailable' - 送信手段がない
+ *   'error'       - 予期せぬエラー
  */
 export async function shareToLine(
   text: string
 ): Promise<{ status: 'sent' | 'cancelled' | 'unavailable' | 'error'; message?: string }> {
+  const ctx = liff.getContext()
+  const inChat = ctx?.type === 'group' || ctx?.type === 'room' || ctx?.type === 'utou'
+
+  // グループ/トークから開かれている場合はそのチャットに直接送信
+  if (inChat && liff.isApiAvailable('sendMessages')) {
+    try {
+      await liff.sendMessages([{ type: 'text', text }])
+      return { status: 'sent' }
+    } catch (e) {
+      return { status: 'error', message: String(e) }
+    }
+  }
+
+  // それ以外は shareTargetPicker で送信先を選択
   if (!liff.isApiAvailable('shareTargetPicker')) {
     return {
       status: 'unavailable',
-      message: 'Share Target Picker が有効になっていません。LINE Developers Console で LIFF アプリの「Share target picker」を ON にしてください。',
+      message: 'グループトークからアプリを開くか、LINE Developers Console で「Share target picker」を ON にしてください。',
     }
   }
   try {
