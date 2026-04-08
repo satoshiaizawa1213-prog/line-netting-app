@@ -72,13 +72,10 @@ export async function shareToLine(
   const ctx = liff.getContext()
   const ctxType = ctx?.type ?? 'none'
   const inChat = ctxType === 'group' || ctxType === 'room' || ctxType === 'utou'
-  const canSend = liff.isApiAvailable('sendMessages')
-  const canPick = liff.isApiAvailable('shareTargetPicker')
-
-  console.log(`[shareToLine] ctxType=${ctxType} inChat=${inChat} canSend=${canSend} canPick=${canPick}`)
 
   // グループ/トークから開かれている場合はそのチャットに直接送信
-  if (inChat && canSend) {
+  // (sendMessages はコンテキストで判断。isApiAvailable は非対応)
+  if (inChat) {
     try {
       await liff.sendMessages([{ type: 'text', text }])
       return { status: 'sent' }
@@ -88,10 +85,10 @@ export async function shareToLine(
   }
 
   // それ以外は shareTargetPicker で送信先を選択
-  if (!canPick) {
+  if (!liff.isApiAvailable('shareTargetPicker')) {
     return {
       status: 'unavailable',
-      message: `ctx=${ctxType} / sendMessages=${canSend} / shareTargetPicker=${canPick}。グループトークのリンクからアプリを開くか、LINE Developers で「Share target picker」を ON にしてください。`,
+      message: `ctx=${ctxType}。グループトークのリンクからアプリを開くか、LINE Developers で「Share target picker」を ON にしてください。`,
     }
   }
   try {
