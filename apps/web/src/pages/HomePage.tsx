@@ -46,9 +46,8 @@ export default function HomePage() {
   const rejected  = payments.filter((p) => p.status === 'rejected')
 
   // 自分がまだ承認していない pending のみ一括承認対象
-  const myPending = pending.filter(
-    (p) => p.reporter_id !== myUserId && p.my_approval == null
-  )
+  const myPending  = pending.filter((p) => p.reporter_id !== myUserId && p.my_approval == null)
+  const myReported = pending.filter((p) => p.reporter_id === myUserId)
   const [bulkDone, setBulkDone] = useState(false)
 
   const bulkMutation = useMutation({
@@ -188,11 +187,11 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* 承認待ち */}
-      {!paymentsLoading && pending.length > 0 && (
+      {/* 承認が必要 */}
+      {!paymentsLoading && myPending.length > 0 && (
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div className="section-title" style={{ marginBottom: 0 }}>承認待ち ({pending.length})</div>
+            <div className="section-title" style={{ marginBottom: 0, color: '#C2410C' }}>承認が必要 ({myPending.length})</div>
             {myPending.length > 1 && (
               <button
                 onClick={() => bulkMutation.mutate()}
@@ -212,12 +211,25 @@ export default function HomePage() {
             )}
           </div>
           <div className="card" style={{ padding: '4px 16px' }}>
-            {pending.map((p, i) => (
-              <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === pending.length - 1} />
+            {myPending.map((p, i) => (
+              <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === myPending.length - 1} />
             ))}
           </div>
         </section>
       )}
+
+      {/* 自分の申告（承認待ち） */}
+      {!paymentsLoading && myReported.length > 0 && (
+        <section>
+          <div className="section-title">自分の申告・承認待ち ({myReported.length})</div>
+          <div className="card" style={{ padding: '4px 16px' }}>
+            {myReported.map((p, i) => (
+              <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === myReported.length - 1} />
+            ))}
+          </div>
+        </section>
+      )}
+
 
       {/* 確定済み（未精算） */}
       {!paymentsLoading && approved.length > 0 && (
