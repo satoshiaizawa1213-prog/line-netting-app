@@ -38,53 +38,115 @@ export default function HomePage() {
   const rejected  = payments.filter((p) => p.status === 'rejected')
 
   return (
-    <div className="page">
-      {/* プル・トゥ・リフレッシュ インジケーター */}
+    <div className="page" style={{ paddingBottom: 24, gap: 16 }}>
+      {/* プル・トゥ・リフレッシュ */}
       {pullY > 0 && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
           display: 'flex', justifyContent: 'center', alignItems: 'center',
-          height: Math.min(pullY, 56),
-          background: 'var(--color-bg)',
+          height: Math.min(pullY, 52),
+          background: 'rgba(255,255,255,0.95)',
+          backdropFilter: 'blur(8px)',
           color: triggered ? 'var(--color-primary)' : 'var(--color-text-sub)',
-          fontSize: '0.85rem', transition: 'color 0.2s',
+          fontSize: '0.82rem',
+          fontWeight: 600,
+          transition: 'color 0.2s',
+          borderBottom: '1px solid var(--color-border)',
         }}>
           {triggered ? '↑ 離して更新' : '↓ 引っ張って更新'}
         </div>
       )}
-      <div className="page-header" style={{ justifyContent: 'space-between' }}>
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          🏠 {groupInfo?.name ?? 'グループ精算'}
-        </span>
-        <button onClick={reload} style={{ width: 'auto', padding: '4px 10px', background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, fontSize: '0.85rem', color: 'var(--color-text-sub)', flexShrink: 0 }}>
+
+      {/* ヘッダー */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4 }}>
+        <div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>グループ</div>
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
+            {groupInfo?.name ?? '読み込み中…'}
+          </div>
+        </div>
+        <button onClick={reload} className="btn-ghost" style={{ width: 'auto', fontSize: '0.8rem', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', color: 'var(--color-text-sub)', background: 'var(--color-card)' }}>
           ↻ 更新
         </button>
       </div>
 
       {/* 残高カード */}
-      <div className="card" style={{ textAlign: 'center', padding: '24px 16px' }}>
-        <div className="section-title">あなたの残高</div>
+      <div className="balance-card">
+        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+          あなたの残高
+        </div>
         {balanceLoading ? (
-          <div style={{ height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-sub)' }}>---</div>
+          <div style={{ height: 52, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '1.5rem', fontWeight: 800 }}>---</div>
         ) : (
           <>
-            <div className={`amount-large ${myBalance >= 0 ? 'amount-positive' : 'amount-negative'}`}>
+            <div style={{
+              fontSize: '2.6rem',
+              fontWeight: 800,
+              letterSpacing: '-0.02em',
+              lineHeight: 1.1,
+              color: myBalance >= 0 ? '#4ade80' : '#f87171',
+            }}>
               {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: 4 }}>
-              {myBalance > 0 ? '受け取り超過' : myBalance < 0 ? '支払い超過' : '精算済み'}
+            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
+              {myBalance > 0 ? '受け取り超過' : myBalance < 0 ? '支払い超過' : '精算済み ✓'}
             </div>
           </>
         )}
+
+        {/* 内訳サマリー */}
+        {!paymentsLoading && (pending.length > 0 || approved.length > 0) && (
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.1)', display: 'flex', gap: 16 }}>
+            {pending.length > 0 && (
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fbbf24' }}>{pending.length}</div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>承認待ち</div>
+              </div>
+            )}
+            {approved.length > 0 && (
+              <div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#4ade80' }}>{approved.length}</div>
+                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>未精算</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* クイックアクション */}
+      <div className="quick-actions">
+        <button className="quick-action-btn primary-action" onClick={() => navigate('/payments/new')}>
+          <span className="icon">＋</span>
+          <span>支払いを報告</span>
+        </button>
+        <button
+          className="quick-action-btn"
+          onClick={() => navigate('/settlements/new', { state: { pendingCount: pending.length } })}
+          disabled={approved.length === 0}
+          style={approved.length > 0 ? { borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : {}}
+        >
+          <span className="icon">精</span>
+          <span>精算する{approved.length > 0 ? ` (${approved.length})` : ''}</span>
+        </button>
+        <button className="quick-action-btn" onClick={() => navigate('/my-payments')}>
+          <span className="icon">💳</span>
+          <span>支払いタスク</span>
+        </button>
+        <button className="quick-action-btn" onClick={() => navigate('/members')}>
+          <span className="icon">👥</span>
+          <span>メンバー管理</span>
+        </button>
       </div>
 
       {/* 承認待ち */}
       {!paymentsLoading && pending.length > 0 && (
         <section>
           <div className="section-title">承認待ち ({pending.length})</div>
-          {pending.map((p) => (
-            <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} />
-          ))}
+          <div className="card" style={{ padding: '4px 16px' }}>
+            {pending.map((p, i) => (
+              <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === pending.length - 1} />
+            ))}
+          </div>
         </section>
       )}
 
@@ -92,9 +154,11 @@ export default function HomePage() {
       {!paymentsLoading && approved.length > 0 && (
         <section>
           <div className="section-title">確定済み・未精算 ({approved.length})</div>
-          {approved.map((p) => (
-            <PaymentCard key={p.id} payment={p} myUserId={myUserId} />
-          ))}
+          <div className="card" style={{ padding: '4px 16px' }}>
+            {approved.map((p, i) => (
+              <PaymentCard key={p.id} payment={p} myUserId={myUserId} isLast={i === approved.length - 1} />
+            ))}
+          </div>
         </section>
       )}
 
@@ -102,102 +166,76 @@ export default function HomePage() {
       {!paymentsLoading && rejected.length > 0 && (
         <section>
           <div className="section-title">却下済み ({rejected.length})</div>
-          {rejected.map((p) => (
-            <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} />
-          ))}
+          <div className="card" style={{ padding: '4px 16px' }}>
+            {rejected.map((p, i) => (
+              <PaymentCard key={p.id} payment={p} myUserId={myUserId} onClick={() => navigate(`/payments/${p.id}`)} isLast={i === rejected.length - 1} />
+            ))}
+          </div>
         </section>
       )}
 
       {/* 空状態 */}
       {!paymentsLoading && pending.length === 0 && approved.length === 0 && rejected.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-sub)' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 8 }}>💸</div>
-          <div>支払い報告がありません</div>
-          <div style={{ fontSize: '0.85rem', marginTop: 4 }}>「支払いを報告する」から登録しましょう</div>
+        <div className="card empty-state">
+          <div className="empty-state-icon">💸</div>
+          <div className="empty-state-title">支払い報告がありません</div>
+          <div className="empty-state-desc">「支払いを報告」から登録しましょう</div>
         </div>
       )}
 
-      <div className="bottom-actions">
-        <button className="btn-primary" onClick={() => navigate('/payments/new')}>
-          ＋ 支払いを報告する
-        </button>
-        <button
-          className="btn-secondary"
-          onClick={() => navigate('/settlements/new', { state: { pendingCount: pending.length } })}
-          disabled={approved.length === 0}
-        >
-          精算する {approved.length > 0 ? `(${approved.length}件)` : ''}
-        </button>
-        <button
-          className="btn-secondary"
-          style={{ fontSize: '0.85rem' }}
-          onClick={() => navigate('/settlements/history')}
-        >
-          📋 精算履歴
-        </button>
-        <button
-          className="btn-secondary"
-          style={{ fontSize: '0.85rem' }}
-          onClick={() => navigate('/my-payments')}
-        >
-          💳 自分の支払いタスク
-        </button>
-        <button
-          className="btn-secondary"
-          style={{ fontSize: '0.85rem' }}
-          onClick={() => navigate('/members')}
-        >
-          👥 メンバー管理
-        </button>
-      </div>
+      {/* 精算履歴リンク */}
+      <button
+        className="btn-ghost"
+        onClick={() => navigate('/settlements/history')}
+        style={{ width: '100%', fontSize: '0.85rem', color: 'var(--color-text-sub)', padding: '10px', border: '1px dashed var(--color-border)', borderRadius: 10 }}
+      >
+        📋 精算履歴を見る
+      </button>
     </div>
   )
 }
 
-function PaymentCard({ payment, myUserId, onClick }: { payment: Payment; myUserId: string; onClick?: () => void }) {
+function PaymentCard({ payment, myUserId, onClick, isLast }: { payment: Payment; myUserId: string; onClick?: () => void; isLast?: boolean }) {
   const isPayer  = payment.payer_id === myUserId
   const mySplit  = payment.splits?.find((s) => s.user_id === myUserId)
-  // 自分が立替者の場合: 自分のsplitを除いた分が受取予定
-  const receiveAmount = isPayer
-    ? payment.amount - (mySplit?.amount ?? 0)
-    : 0
+  const receiveAmount = isPayer ? payment.amount - (mySplit?.amount ?? 0) : 0
+
+  const statusColor = payment.status === 'pending' ? '#F97316' : payment.status === 'rejected' ? 'var(--color-danger)' : 'var(--color-primary)'
 
   return (
     <div
-      className="card"
-      style={{ marginBottom: 8, cursor: onClick ? 'pointer' : 'default' }}
       onClick={onClick}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '14px 0',
+        borderBottom: isLast ? 'none' : '1px solid var(--color-border)',
+        cursor: onClick ? 'pointer' : 'default',
+      }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 600, marginBottom: 2 }}>{payment.description}</div>
-          <div style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)' }}>
-            {payment.payer?.display_name} · ¥{payment.amount.toLocaleString()}
-          </div>
-          {isPayer && receiveAmount > 0 && (
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-primary)', marginTop: 2, fontWeight: 600 }}>
-              あなたが立替 → 受取予定 ¥{receiveAmount.toLocaleString()}
-            </div>
-          )}
-          {isPayer && receiveAmount === 0 && (
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
-              あなたが立替（全額自己負担）
-            </div>
-          )}
-          {!isPayer && mySplit && (
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-danger)', marginTop: 2, fontWeight: 600 }}>
-              あなたの負担: ¥{mySplit.amount.toLocaleString()}
-            </div>
-          )}
-          {!isPayer && !mySplit && (
-            <div style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
-              あなたの負担なし
-            </div>
-          )}
+      <div style={{ width: 3, height: 40, borderRadius: 2, background: statusColor, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: '0.95rem', marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{payment.description}</div>
+        <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)' }}>
+          {payment.payer?.display_name} · <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>¥{payment.amount.toLocaleString()}</span>
         </div>
+        {isPayer && receiveAmount > 0 && (
+          <div style={{ fontSize: '0.78rem', color: 'var(--color-primary)', marginTop: 2, fontWeight: 600 }}>
+            受取予定 ¥{receiveAmount.toLocaleString()}
+          </div>
+        )}
+        {!isPayer && mySplit && (
+          <div style={{ fontSize: '0.78rem', color: 'var(--color-danger)', marginTop: 2, fontWeight: 600 }}>
+            負担 ¥{mySplit.amount.toLocaleString()}
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
         <span className={`badge ${payment.status === 'pending' ? 'badge-pending' : payment.status === 'rejected' ? 'badge-rejected' : 'badge-approved'}`}>
           {payment.status === 'pending' ? '承認待ち' : payment.status === 'rejected' ? '却下' : '確定'}
         </span>
+        {onClick && <span style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)' }}>タップ →</span>}
       </div>
     </div>
   )

@@ -204,7 +204,7 @@ settlements.post('/', async (c) => {
     nettingResults = bilateralNetting(flows)
   }
 
-  // DB に保存（トランザクション的に処理）
+  // DB に保存（各ステップのエラーを検出して整合性を保つ）
   const { data: settlement, error: settlementError } = await db
     .from('settlements')
     .insert({ group_id, method, executed_by: user.id })
@@ -214,13 +214,17 @@ settlements.post('/', async (c) => {
   if (settlementError || !settlement) return c.json({ error: 'Failed to create settlement' }, 500)
 
   // settlement_payments
-  await db.from('settlement_payments').insert(
+  const { error: spError } = await db.from('settlement_payments').insert(
     payments.map((p) => ({ settlement_id: settlement.id, payment_id: p.id }))
   )
+  if (spError) {
+    await db.from('settlements').delete().eq('id', settlement.id)
+    return c.json({ error: 'Failed to create settlement_payments' }, 500)
+  }
 
   // settlement_results
   if (nettingResults.length > 0) {
-    await db.from('settlement_results').insert(
+    const { error: srError } = await db.from('settlement_results').insert(
       nettingResults.map((r) => ({
         settlement_id: settlement.id,
         from_user_id: r.from,
@@ -228,13 +232,22 @@ settlements.post('/', async (c) => {
         amount: r.amount,
       }))
     )
+    if (srError) {
+      await db.from('settlements').delete().eq('id', settlement.id)
+      return c.json({ error: 'Failed to create settlement_results' }, 500)
+    }
   }
 
   // payments を settled = true に更新
-  await db
+  const { error: updateError } = await db
     .from('payments')
     .update({ settled: true, updated_at: new Date().toISOString() })
     .in('id', payments.map((p) => p.id))
+
+  if (updateError) {
+    await db.from('settlements').delete().eq('id', settlement.id)
+    return c.json({ error: 'Failed to mark payments as settled' }, 500)
+  }
 
   // レスポンス: 結果を返す
   const { data: resultsWithUsers } = await db

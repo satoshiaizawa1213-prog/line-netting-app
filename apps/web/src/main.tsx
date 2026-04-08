@@ -15,60 +15,82 @@ const root = document.getElementById('root')!
 
 function showLoading() {
   root.innerHTML = `
-    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;gap:12px;">
-      <div style="width:36px;height:36px;border:4px solid #e0e0e0;border-top-color:#06C755;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
-      <p style="color:#666;font-size:0.9rem;">読み込み中...</p>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;gap:14px;background:#F3F4F6;">
+      <div style="width:40px;height:40px;border:3px solid #E5E7EB;border-top-color:#06C755;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
+      <p style="color:#9CA3AF;font-size:0.85rem;font-weight:500;letter-spacing:0.03em;">読み込み中...</p>
     </div>
-    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    <style>
+      @keyframes spin{to{transform:rotate(360deg)}}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;margin:0;max-width:480px;margin:0 auto;}
+    </style>
   `
 }
 
 function showError(message: string) {
   root.innerHTML = `
-    <p style="padding:24px;color:#E53935;text-align:center;font-size:0.95rem;">${message}</p>
+    <div style="padding:32px 20px;text-align:center;background:#F3F4F6;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <div style="font-size:2rem;margin-bottom:16px;">⚠️</div>
+      <p style="color:#111827;font-weight:700;font-size:1rem;margin-bottom:8px;">初期化に失敗しました</p>
+      <p style="color:#6B7280;font-size:0.83rem;line-height:1.6;word-break:break-all;">${message}</p>
+    </div>
+    <style>body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;margin:0;max-width:480px;margin:0 auto;}</style>
   `
 }
 
 function showGroupSetup(): Promise<string> {
   return new Promise((resolve) => {
     root.innerHTML = `
-      <div style="padding:32px 20px;max-width:360px;margin:0 auto;font-family:sans-serif;">
-        <div style="color:#06C755;font-size:1.5rem;text-align:center;margin-bottom:8px;">💰</div>
-        <h1 style="font-size:1.1rem;text-align:center;margin-bottom:4px;color:#222;">割り勘アプリへようこそ</h1>
-        <p style="color:#666;font-size:0.85rem;text-align:center;margin-bottom:24px;">
-          グループを作成して、招待リンクをLINEグループで共有してください。
-        </p>
-        <input id="gname" type="text" placeholder="グループ名（例：旅行メンバー）"
-          style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:1rem;
-                 box-sizing:border-box;margin-bottom:10px;outline:none;-webkit-appearance:none;" />
-        <button id="create-btn"
-          style="width:100%;padding:13px;background:#06C755;color:white;border:none;
-                 border-radius:8px;font-size:1rem;cursor:pointer;font-weight:bold;">
-          グループを作成
-        </button>
-        <div id="err" style="color:#E53935;font-size:0.82rem;margin-top:6px;min-height:18px;text-align:center;"></div>
-        <div id="invite" style="display:none;margin-top:24px;padding:16px;background:#f7f7f7;border-radius:10px;">
-          <p style="color:#333;font-size:0.85rem;margin:0 0 8px;font-weight:bold;">
-            ✅ グループを作成しました
-          </p>
-          <p style="color:#666;font-size:0.82rem;margin:0 0 10px;">
-            以下の招待リンクをLINEグループトークに貼り付けてメンバーを招待してください。
-          </p>
-          <div id="invite-url"
-            style="background:#fff;padding:10px;border-radius:6px;font-size:0.72rem;
-                   word-break:break-all;color:#06C755;margin-bottom:10px;border:1px solid #e0e0e0;"></div>
-          <button id="copy-btn"
-            style="width:100%;padding:10px;background:#fff;color:#06C755;border:2px solid #06C755;
-                   border-radius:8px;font-size:0.9rem;cursor:pointer;margin-bottom:8px;font-weight:bold;">
-            リンクをコピー
-          </button>
-          <button id="open-btn"
-            style="width:100%;padding:10px;background:#06C755;color:white;border:none;
-                   border-radius:8px;font-size:0.9rem;cursor:pointer;font-weight:bold;">
-            アプリを開く →
-          </button>
+      <div style="min-height:100dvh;background:#F3F4F6;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;box-sizing:border-box;">
+        <div style="width:100%;max-width:360px;">
+          <div style="text-align:center;margin-bottom:28px;">
+            <div style="width:64px;height:64px;background:linear-gradient(135deg,#06C755,#04b34a);border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 16px;box-shadow:0 8px 24px rgba(6,199,85,0.3);">💰</div>
+            <h1 style="font-size:1.2rem;font-weight:800;color:#111827;margin:0 0 6px;">割り勘アプリへようこそ</h1>
+            <p style="color:#6B7280;font-size:0.85rem;margin:0;line-height:1.5;">グループを作成して、招待リンクを<br>LINEグループで共有してください。</p>
+          </div>
+
+          <div style="background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <input id="gname" type="text" placeholder="グループ名（例：旅行メンバー）"
+              style="width:100%;padding:12px 14px;border:1.5px solid #E5E7EB;border-radius:10px;font-size:1rem;
+                     box-sizing:border-box;margin-bottom:12px;outline:none;-webkit-appearance:none;
+                     font-family:inherit;color:#111827;transition:border-color 0.15s;" />
+            <button id="create-btn"
+              style="width:100%;padding:14px;background:linear-gradient(135deg,#06C755,#04b34a);color:white;border:none;
+                     border-radius:10px;font-size:1rem;cursor:pointer;font-weight:700;
+                     box-shadow:0 4px 14px rgba(6,199,85,0.3);transition:opacity 0.15s;font-family:inherit;">
+              グループを作成
+            </button>
+            <div id="err" style="color:#FF4757;font-size:0.82rem;margin-top:8px;min-height:18px;text-align:center;"></div>
+          </div>
+
+          <div id="invite" style="display:none;margin-top:16px;background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.07);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+              <span style="font-size:1.2rem;">✅</span>
+              <span style="font-weight:700;color:#111827;font-size:0.95rem;">グループを作成しました</span>
+            </div>
+            <p style="color:#6B7280;font-size:0.82rem;margin:0 0 12px;line-height:1.5;">
+              招待リンクをLINEグループトークに貼り付けてメンバーを招待してください。
+            </p>
+            <div id="invite-url"
+              style="background:#F3F4F6;padding:10px 12px;border-radius:8px;font-size:0.72rem;
+                     word-break:break-all;color:#06C755;margin-bottom:12px;font-weight:600;line-height:1.4;"></div>
+            <button id="copy-btn"
+              style="width:100%;padding:12px;background:#fff;color:#06C755;border:2px solid #06C755;
+                     border-radius:10px;font-size:0.9rem;cursor:pointer;margin-bottom:8px;font-weight:700;font-family:inherit;">
+              🔗 リンクをコピー
+            </button>
+            <button id="open-btn"
+              style="width:100%;padding:12px;background:linear-gradient(135deg,#06C755,#04b34a);color:white;border:none;
+                     border-radius:10px;font-size:0.9rem;cursor:pointer;font-weight:700;
+                     box-shadow:0 4px 14px rgba(6,199,85,0.25);font-family:inherit;">
+              アプリを開く →
+            </button>
+          </div>
         </div>
       </div>
+      <style>
+        body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;margin:0;max-width:480px;margin:0 auto;background:#F3F4F6;}
+        #gname:focus{border-color:#06C755;box-shadow:0 0 0 3px rgba(6,199,85,0.12);}
+      </style>
     `
 
     const gnameEl = document.getElementById('gname') as HTMLInputElement
@@ -183,7 +205,7 @@ async function bootstrap() {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('Bootstrap failed:', err)
-    showError(`初期化に失敗しました。<br><br><small style="word-break:break-all;">${msg}</small>`)
+    showError(msg)
   }
 }
 

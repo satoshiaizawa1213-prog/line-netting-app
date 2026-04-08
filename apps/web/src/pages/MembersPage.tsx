@@ -68,22 +68,27 @@ export default function MembersPage() {
       </div>
 
       {/* 招待 */}
-      <div className="card">
-        <div className="section-title">メンバーを招待</div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)', marginBottom: 10 }}>
-          招待リンクをコピーして LINE グループに貼り付けてください。
-        </p>
-        <button className="btn-primary" onClick={copyInviteLink}>
-          {copied ? '✅ コピーしました！' : '🔗 招待リンクをコピー'}
+      <div className="card" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+          <div>
+            <div className="section-title" style={{ color: '#15803d', marginBottom: 2 }}>メンバーを招待</div>
+            <p style={{ fontSize: '0.83rem', color: '#166534' }}>
+              招待リンクをコピーして LINE で共有しましょう。
+            </p>
+          </div>
+          <span style={{ fontSize: '1.4rem' }}>🔗</span>
+        </div>
+        <button className="btn-primary" onClick={copyInviteLink} style={{ marginTop: 4 }}>
+          {copied ? '✅ コピーしました！' : '招待リンクをコピー'}
         </button>
       </div>
 
       {/* 傾斜説明 */}
-      <div className="card" style={{ background: '#F1F8E9', border: '1px solid #AED581' }}>
-        <div className="section-title" style={{ color: '#558B2F' }}>傾斜割の設定</div>
-        <p style={{ fontSize: '0.82rem', color: '#558B2F' }}>
-          傾斜（重み）が大きいほど負担割合が増えます。デフォルトは全員1。
-          例）2:1:1 の場合、3人で1,000円 → 500円・250円・250円
+      <div className="card" style={{ background: '#fafafa', border: '1px solid var(--color-border)' }}>
+        <div className="section-title">傾斜割について</div>
+        <p style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
+          重みが大きいほど負担割合が増えます。デフォルトは全員 ×1。<br />
+          例）重み 2:1:1 で 1,000円 → <strong>500円・250円・250円</strong>
         </p>
       </div>
 

@@ -30,9 +30,10 @@ export default function SettlementHistoryPage() {
       {isLoading && <p style={{ color: 'var(--color-text-sub)', textAlign: 'center' }}>読み込み中...</p>}
 
       {!isLoading && settlements.length === 0 && (
-        <div className="card" style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--color-text-sub)' }}>
-          <div style={{ fontSize: '2rem', marginBottom: 8 }}>📋</div>
-          <div>精算履歴がありません</div>
+        <div className="card empty-state">
+          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-title">精算履歴がありません</div>
+          <div className="empty-state-desc">精算を実行すると履歴が表示されます</div>
         </div>
       )}
 

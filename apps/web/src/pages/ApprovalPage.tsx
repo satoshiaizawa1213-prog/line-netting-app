@@ -91,17 +91,23 @@ export default function ApprovalPage() {
             </span>
           </span>
         </div>
-        <div style={{ fontWeight: 700, fontSize: '1.15rem', marginBottom: 4 }}>{payment.description}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 2 }}>{payment.description}</div>
+            <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
+              立替者: <strong style={{ color: 'var(--color-text)' }}>{payment.payer?.display_name}</strong>
+              {payment.payer_id === myUserId && <span style={{ color: 'var(--color-primary)', marginLeft: 4 }}>（自分）</span>}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{ fontSize: '1.7rem', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text)' }}>¥{payment.amount.toLocaleString()}</div>
+          </div>
+        </div>
         {payment.note && (
-          <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)', marginTop: 4, padding: '6px 10px', background: 'var(--color-bg)', borderRadius: 6 }}>
+          <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginTop: 10, padding: '8px 12px', background: 'var(--color-bg)', borderRadius: 8, borderLeft: '3px solid var(--color-border)' }}>
             📝 {payment.note}
           </div>
         )}
-        <div style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-text)' }}>¥{payment.amount.toLocaleString()}</div>
-        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)', marginTop: 6 }}>
-          立替者: {payment.payer?.display_name}
-          {payment.payer_id === myUserId && <span style={{ color: 'var(--color-primary)', marginLeft: 6 }}>（自分）</span>}
-        </div>
       </div>
 
       {/* 自分の負担額 */}

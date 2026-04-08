@@ -54,6 +54,20 @@ payments.post('/', async (c) => {
     return c.json({ error: 'splits total must equal amount' }, 400)
   }
 
+  // グループメンバーシップ確認（自分・payer・splits全員）
+  const { data: memberRows } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', group_id)
+    .eq('is_active', true)
+
+  const memberSet = new Set((memberRows ?? []).map((m: { user_id: string }) => m.user_id))
+  if (!memberSet.has(user.id)) return c.json({ error: 'Forbidden' }, 403)
+  if (!memberSet.has(payer_id)) return c.json({ error: 'payer_id is not a group member' }, 400)
+  for (const s of splits) {
+    if (!memberSet.has(s.user_id)) return c.json({ error: `User ${s.user_id} is not a group member` }, 400)
+  }
+
   const { data: payment, error: paymentError } = await db
     .from('payments')
     .insert({ group_id, reporter_id: user.id, payer_id, amount, description, note })

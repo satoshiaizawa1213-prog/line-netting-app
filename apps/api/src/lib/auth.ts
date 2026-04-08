@@ -18,6 +18,23 @@ declare module 'hono' {
 const tokenCache = new Map<string, { user: AuthUser; expiresAt: number }>()
 const CACHE_TTL_MS = 5 * 60 * 1000
 
+// レート制限: ユーザーIDごとに1分間60リクエストまで
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT = 60
+const RATE_WINDOW_MS = 60 * 1000
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(userId)
+  if (!entry || entry.resetAt < now) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_WINDOW_MS })
+    return true
+  }
+  if (entry.count >= RATE_LIMIT) return false
+  entry.count++
+  return true
+}
+
 /** LINEアクセストークンを検証し、DBユーザーをupsertしてcontextにセット */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const authMiddleware = createMiddleware<any>(async (c, next) => {
@@ -87,5 +104,10 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
   const user = data as AuthUser
   tokenCache.set(token, { user, expiresAt: Date.now() + CACHE_TTL_MS })
   c.set('user', user)
+
+  if (!checkRateLimit(user.id)) {
+    return c.json({ error: 'Too many requests' }, 429)
+  }
+
   await next()
 })
