@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { db } from '../lib/db'
 import { authMiddleware } from '../lib/auth'
+import { pushLineMessages } from '../lib/line-notify'
 
 const payments = new Hono()
 payments.use('*', authMiddleware)
@@ -81,6 +82,20 @@ payments.post('/', async (c) => {
   )
 
   if (splitError) return c.json({ error: 'Failed to create splits' }, 500)
+
+  // 報告者以外のグループメンバーに承認依頼を通知
+  const otherIds = [...memberSet].filter((id) => id !== user.id)
+  if (otherIds.length > 0) {
+    const { data: recipients } = await db
+      .from('users')
+      .select('line_user_id')
+      .in('id', otherIds)
+    const liffUrl = process.env.LIFF_URL ?? ''
+    await pushLineMessages(
+      recipients ?? [],
+      `💸 ${user.display_name}さんが支払いを報告しました。\n\n${description}：¥${amount.toLocaleString()}\n\n承認をお願いします。${liffUrl ? '\n' + liffUrl : ''}`
+    )
+  }
 
   return c.json(payment, 201)
 })
