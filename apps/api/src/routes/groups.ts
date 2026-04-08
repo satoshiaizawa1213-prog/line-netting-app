@@ -6,14 +6,12 @@ import { calcBalances } from '../lib/netting'
 const groups = new Hono()
 groups.use('*', authMiddleware)
 
-/** ランダムな join_token を生成（16文字英数字） */
+/** ランダムな join_token を生成（暗号学的乱数・24文字英数字） */
 function generateJoinToken(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
-  let token = ''
-  for (let i = 0; i < 16; i++) {
-    token += chars[Math.floor(Math.random() * chars.length)]
-  }
-  return token
+  const bytes = new Uint8Array(24)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes).map((b) => chars[b % chars.length]).join('')
 }
 
 /** グループのメンバーシップを確認するヘルパー */
@@ -170,7 +168,7 @@ groups.patch('/:groupId/members/:userId/weight', async (c) => {
   const weight = Number(c.req.query('weight'))
 
   if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
-  if (weight <= 0) return c.json({ error: 'Weight must be positive' }, 400)
+  if (weight <= 0 || weight > 100) return c.json({ error: 'Weight must be between 0 and 100' }, 400)
 
   const { error } = await db
     .from('group_members')

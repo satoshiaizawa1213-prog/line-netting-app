@@ -164,6 +164,16 @@ settlements.post('/', async (c) => {
   const method   = (c.req.query('method') ?? 'multilateral') as 'multilateral' | 'bilateral'
   if (!group_id) return c.json({ error: 'group_id is required' }, 400)
 
+  // グループメンバーシップ確認
+  const { data: memberCheck } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', group_id)
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (!memberCheck) return c.json({ error: 'Forbidden' }, 403)
+
   // 承認済み・未精算の payments を取得
   const { data: rawPayments, error: fetchError } = await db
     .from('payments')
