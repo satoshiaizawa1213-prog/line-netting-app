@@ -13,13 +13,13 @@ function getOrCreateOverlay(): HTMLDivElement {
     el = document.createElement('div')
     el.id = 'swipe-overlay'
     Object.assign(el.style, {
-      position: 'fixed',
-      inset: '0',
-      zIndex: '999',
+      position:      'fixed',
+      inset:         '0',
+      zIndex:        '999',
       pointerEvents: 'none',
-      opacity: '0',
-      background: 'linear-gradient(to right, rgba(0,0,0,0.18) 0%, transparent 100%)',
-      transition: 'none',
+      opacity:       '0',
+      background:    'linear-gradient(to right, rgba(0,0,0,0.28) 0%, rgba(0,0,0,0.06) 40%, transparent 100%)',
+      transition:    'none',
     })
     document.body.appendChild(el)
   }
@@ -44,28 +44,27 @@ export function useSwipeNavigation() {
     }
 
     function applyDrag(el: HTMLElement, rawDx: number) {
-      // 抵抗感のある追従（指より少し遅れる）
-      const dx = rawDx * RESISTANCE
+      const dx    = rawDx * RESISTANCE
       const ratio = Math.min(dx / window.innerWidth, 1)
 
       el.style.transition = 'none'
       el.style.transform  = `translateX(${dx}px)`
-      // 奥に引っ込む演出：わずかにスケールダウン
-      el.style.boxShadow  = `-12px 0 32px rgba(0,0,0,${0.10 + ratio * 0.15})`
+      el.style.boxShadow  = `-16px 0 40px rgba(0,0,0,${0.15 + ratio * 0.20})`
       el.style.willChange = 'transform'
+      el.style.borderRadius = ratio > 0.01 ? '12px 0 0 12px' : ''
 
-      // 左端のオーバーレイ（前の画面の暗い縁を模倣）
       const overlay = getOrCreateOverlay()
-      overlay.style.opacity = String(ratio * 0.5)
+      overlay.style.opacity = String(ratio * 0.7)
     }
 
     function resetPage(el: HTMLElement, animate: boolean) {
       el.style.transition = animate
-        ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.28s ease'
+        ? 'transform 0.28s cubic-bezier(0.25,0.46,0.45,0.94), box-shadow 0.28s ease, border-radius 0.28s ease'
         : 'none'
-      el.style.transform  = ''
-      el.style.boxShadow  = ''
-      el.style.willChange = ''
+      el.style.transform    = ''
+      el.style.boxShadow    = ''
+      el.style.willChange   = ''
+      el.style.borderRadius = ''
       const overlay = getOrCreateOverlay()
       overlay.style.transition = animate ? 'opacity 0.28s ease' : 'none'
       overlay.style.opacity    = '0'
@@ -75,9 +74,10 @@ export function useSwipeNavigation() {
 
     function slideOut(el: HTMLElement, onDone: () => void) {
       const W = window.innerWidth
-      el.style.transition = 'transform 0.30s cubic-bezier(0.4,0,0.2,1), box-shadow 0.30s ease'
-      el.style.transform  = `translateX(${W}px)`
-      el.style.boxShadow  = 'none'
+      el.style.transition   = 'transform 0.30s cubic-bezier(0.4,0,0.2,1), box-shadow 0.28s ease, border-radius 0.30s ease'
+      el.style.transform    = `translateX(${W}px)`
+      el.style.boxShadow    = 'none'
+      el.style.borderRadius = ''
       const overlay = getOrCreateOverlay()
       overlay.style.transition = 'opacity 0.30s ease'
       overlay.style.opacity    = '0'

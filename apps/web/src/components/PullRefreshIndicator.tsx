@@ -57,8 +57,14 @@ export function PullRefreshIndicator({ pullY, pullState, threshold = 68 }: Props
           height="32"
           viewBox="0 0 32 32"
           style={{
-            transform:  isTriggered ? 'rotate(180deg)' : `rotate(${ratio * 270}deg)`,
-            transition: isSpinning ? 'none' : 'transform 0.15s ease',
+            transform: isSpinning
+              ? undefined
+              : isDone
+                ? 'rotate(0deg)'
+                : isTriggered
+                  ? 'rotate(180deg)'
+                  : `rotate(${ratio * 270}deg)`,
+            transition: isSpinning || isDone ? 'none' : 'transform 0.15s ease',
             animation:  isSpinning ? 'ptr-spin 0.75s linear infinite' : 'none',
           }}
         >
