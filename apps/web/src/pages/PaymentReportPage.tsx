@@ -87,13 +87,17 @@ export default function PaymentReportPage() {
 
   async function handleShare() {
     setShareError(null)
-    const result = await shareToLine(buildShareText())
-    if (result.status === 'sent') {
-      navigate('/')
-    } else if (result.status === 'cancelled') {
-      setShareError('キャンセルされました。もう一度お試しください。')
-    } else {
-      setShareError(`[${result.status}] ${result.message ?? '通知の送信に失敗しました'}`)
+    try {
+      const result = await shareToLine(buildShareText())
+      if (result.status === 'sent') {
+        navigate('/')
+      } else if (result.status === 'cancelled') {
+        setShareError('キャンセルされました。下の「コピー」でテキストをコピーして LINE に貼り付けてください。')
+      } else {
+        setShareError(`[${result.status}] ${result.message ?? '通知の送信に失敗しました'}`)
+      }
+    } catch (e) {
+      setShareError(`予期せぬエラー: ${String(e)}`)
     }
   }
 
