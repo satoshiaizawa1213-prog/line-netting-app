@@ -1,83 +1,124 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
-import { createSettlement } from '@/lib/api'
-import type { NettingMethod } from '@/types'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { createProposal, getProposals } from '@/lib/api'
+import type { NettingMethod, SettlementProposal } from '@/types'
 
 export default function SettlementPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const groupId = sessionStorage.getItem('groupId') ?? ''
   const [method, setMethod] = useState<NettingMethod>('multilateral')
-  const [confirmed, setConfirmed] = useState(false)
 
   const pendingCount = (location.state as { pendingCount?: number } | null)?.pendingCount ?? 0
-  const needsConfirm = pendingCount > 0 && !confirmed
+
+  // 既存の pending 提案を確認
+  const { data: proposals = [] } = useQuery<SettlementProposal[]>({
+    queryKey: ['proposals', groupId],
+    queryFn: () => getProposals(groupId),
+  })
+  const hasPending = proposals.length > 0
 
   const mutation = useMutation({
-    mutationFn: () => createSettlement(groupId, method),
-    onSuccess: (data) => navigate(`/settlements/${data.id}`, { state: { settlement: data } }),
+    mutationFn: () => createProposal(groupId, method),
+    onSuccess: () => navigate('/'),
   })
 
   return (
     <div className="page">
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)' }}>←</button>
-        精算する
+        精算を提案する
       </div>
 
-      <p style={{ color: 'var(--color-text-sub)', fontSize: '0.9rem' }}>精算方式を選んでください</p>
-
-      <div className="card" style={{ cursor: 'pointer', border: method === 'multilateral' ? '2px solid var(--color-primary)' : '2px solid transparent' }}
-        onClick={() => setMethod('multilateral')}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-          <input type="radio" checked={method === 'multilateral'} onChange={() => setMethod('multilateral')} style={{ marginTop: 2 }} />
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>マルチラテラル</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
-              全員の貸し借りをまとめて計算。支払い回数が最小になります。
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 6 }}>
-              例）4人の場合、最大3回の支払いで完結
-            </div>
+      {/* 全員合意の説明 */}
+      <div className="card" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #bbf7d0', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>🤝</span>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#15803d', marginBottom: 4 }}>全員合意制</div>
+          <div style={{ fontSize: '0.82rem', color: '#166534', lineHeight: 1.6 }}>
+            提案後、グループの全メンバーが承認すると精算が実行されます。
+            LINEで承認リクエストが通知されます。
           </div>
-        </label>
+        </div>
       </div>
 
-      <div className="card" style={{ cursor: 'pointer', border: method === 'bilateral' ? '2px solid var(--color-primary)' : '2px solid transparent' }}
-        onClick={() => setMethod('bilateral')}>
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-          <input type="radio" checked={method === 'bilateral'} onChange={() => setMethod('bilateral')} style={{ marginTop: 2 }} />
-          <div>
-            <div style={{ fontWeight: 700, marginBottom: 4 }}>バイラテラル</div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
-              2人ずつペアで相殺。誰が誰にいくら払うか明確です。
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', marginTop: 6 }}>
-              例）A↔B、B↔C をそれぞれ独立処理
-            </div>
-          </div>
-        </label>
-      </div>
-
-      {needsConfirm && (
-        <div className="card" style={{ background: '#FFF8E1', border: '1.5px solid #FFB300' }}>
-          <div style={{ fontWeight: 600, marginBottom: 6, color: '#E65100' }}>⚠️ 承認待ちの支払いがあります</div>
-          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)', margin: '0 0 12px' }}>
-            承認待ちの支払いが {pendingCount} 件あります。精算対象にならずスキップされます。このまま続けますか？
+      {/* 既存の提案がある場合 */}
+      {hasPending && (
+        <div className="card" style={{ background: '#fffbeb', border: '1.5px solid #fbbf24' }}>
+          <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 4 }}>⚠️ 承認待ちの提案があります</div>
+          <p style={{ fontSize: '0.83rem', color: '#78350f', margin: 0 }}>
+            既に精算提案が進行中です。新しい提案はできません。<br />
+            ホーム画面から既存の提案を確認してください。
           </p>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn-secondary" style={{ flex: 1 }} onClick={() => navigate(-1)}>戻る</button>
-            <button className="btn-primary" style={{ flex: 1 }} onClick={() => setConfirmed(true)}>続ける</button>
-          </div>
+          <button className="btn-secondary" style={{ marginTop: 12 }} onClick={() => navigate('/')}>
+            ホームで確認する
+          </button>
         </div>
       )}
 
-      <div className="bottom-actions">
-        <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending || needsConfirm}>
-          {mutation.isPending ? '計算中...' : 'この方式で精算する'}
-        </button>
-      </div>
+      {/* 精算方式 */}
+      {!hasPending && (
+        <>
+          <p style={{ color: 'var(--color-text-sub)', fontSize: '0.9rem' }}>精算方式を選んでください</p>
+
+          <div
+            className="card"
+            style={{ cursor: 'pointer', border: `2px solid ${method === 'multilateral' ? 'var(--color-primary)' : 'transparent'}` }}
+            onClick={() => setMethod('multilateral')}
+          >
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+              <input type="radio" checked={method === 'multilateral'} onChange={() => setMethod('multilateral')} style={{ marginTop: 3, accentColor: 'var(--color-primary)' }} />
+              <div>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>マルチラテラル（推奨）</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
+                  全員の貸し借りをまとめて計算。支払い回数が最小になります。
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-primary)', marginTop: 4 }}>
+                  例）4人の場合、最大3回の支払いで完結
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div
+            className="card"
+            style={{ cursor: 'pointer', border: `2px solid ${method === 'bilateral' ? 'var(--color-primary)' : 'transparent'}` }}
+            onClick={() => setMethod('bilateral')}
+          >
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+              <input type="radio" checked={method === 'bilateral'} onChange={() => setMethod('bilateral')} style={{ marginTop: 3, accentColor: 'var(--color-primary)' }} />
+              <div>
+                <div style={{ fontWeight: 700, marginBottom: 4 }}>バイラテラル</div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--color-text-sub)' }}>
+                  2人ずつペアで相殺。誰が誰にいくら払うか明確です。
+                </div>
+              </div>
+            </label>
+          </div>
+
+          {pendingCount > 0 && (
+            <div className="card" style={{ background: '#fffbeb', border: '1.5px solid #fbbf24' }}>
+              <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 4 }}>⚠️ 承認待ちの支払いがあります</div>
+              <p style={{ fontSize: '0.83rem', color: '#78350f', margin: 0 }}>
+                承認待ちが {pendingCount} 件あります。承認されていない支払いは精算対象外です。
+              </p>
+            </div>
+          )}
+
+          {mutation.isError && (
+            <p style={{ color: 'var(--color-danger)', fontSize: '0.85rem', textAlign: 'center' }}>
+              {(mutation.error as Error)?.message ?? '失敗しました。もう一度お試しください。'}
+            </p>
+          )}
+
+          <div className="bottom-actions">
+            <button className="btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+              {mutation.isPending ? '提案中...' : '🤝 精算を提案する'}
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }

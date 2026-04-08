@@ -6,6 +6,7 @@ import type {
   GroupBalance,
   User,
   MyPaymentTask,
+  SettlementProposal,
 } from '@/types'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string
@@ -107,6 +108,25 @@ export function deletePayment(paymentId: string) {
 // ─── Settlements ───────────────────────────────────────────
 export function createSettlement(groupId: string, method: NettingMethod) {
   return request<Settlement>(`/settlements?group_id=${groupId}&method=${method}`, { method: 'POST' })
+}
+
+// ─── Settlement Proposals ──────────────────────────────────
+export function getProposals(groupId: string) {
+  return request<SettlementProposal[]>(`/settlements/proposals?group_id=${groupId}`)
+}
+
+export function createProposal(groupId: string, method: NettingMethod) {
+  return request<SettlementProposal>(`/settlements/proposals?group_id=${groupId}&method=${method}`, { method: 'POST' })
+}
+
+export function approveProposal(proposalId: string) {
+  return request<{ status: string; vote_count?: number; total_members?: number; settlement?: Settlement; results?: unknown[] }>(
+    `/settlements/proposals/${proposalId}/approve`, { method: 'POST' }
+  )
+}
+
+export function cancelProposal(proposalId: string) {
+  return request<{ ok: boolean }>(`/settlements/proposals/${proposalId}/cancel`, { method: 'POST' })
 }
 
 export function getSettlementHistory(groupId: string) {

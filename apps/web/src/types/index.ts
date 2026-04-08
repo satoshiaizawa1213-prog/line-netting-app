@@ -84,3 +84,16 @@ export interface GroupBalance {
   balance: number
   user?: User
 }
+
+export interface SettlementProposal {
+  id: string
+  group_id: string
+  method: NettingMethod
+  proposed_by: string
+  proposed_by_user: Pick<User, 'id' | 'display_name'> | null
+  status: 'pending' | 'executed' | 'cancelled'
+  created_at: string
+  vote_count: number
+  total_members: number
+  my_vote: boolean
+}

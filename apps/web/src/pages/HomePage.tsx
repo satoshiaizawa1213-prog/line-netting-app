@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getGroupBalance, getPayments, getGroupInfo } from '@/lib/api'
+import { getGroupBalance, getPayments, getGroupInfo, getProposals } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
-import type { Payment, GroupBalance } from '@/types'
+import type { Payment, GroupBalance, SettlementProposal } from '@/types'
 
 export default function HomePage() {
   const groupId = sessionStorage.getItem('groupId') ?? ''
@@ -11,8 +11,9 @@ export default function HomePage() {
   const qc       = useQueryClient()
 
   function reload() {
-    qc.invalidateQueries({ queryKey: ['payments', groupId] })
-    qc.invalidateQueries({ queryKey: ['balance',  groupId] })
+    qc.invalidateQueries({ queryKey: ['payments',  groupId] })
+    qc.invalidateQueries({ queryKey: ['balance',   groupId] })
+    qc.invalidateQueries({ queryKey: ['proposals', groupId] })
   }
 
   const { pullY, triggered } = usePullToRefresh(reload)
@@ -25,6 +26,11 @@ export default function HomePage() {
   const { data: balances = [], isLoading: balanceLoading } = useQuery<GroupBalance[]>({
     queryKey: ['balance', groupId],
     queryFn: () => getGroupBalance(groupId),
+  })
+
+  const { data: proposals = [] } = useQuery<SettlementProposal[]>({
+    queryKey: ['proposals', groupId],
+    queryFn: () => getProposals(groupId),
   })
 
   const { data: payments = [], isLoading: paymentsLoading } = useQuery<Payment[]>({
@@ -112,6 +118,46 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* 承認待ちの精算提案バナー */}
+      {proposals.map((proposal) => (
+        <div
+          key={proposal.id}
+          onClick={() => navigate(`/settlements/proposals/${proposal.id}`)}
+          style={{
+            background: proposal.my_vote
+              ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)'
+              : 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+            border: `1.5px solid ${proposal.my_vote ? '#86efac' : '#fbbf24'}`,
+            borderRadius: 'var(--radius)',
+            padding: '14px 16px',
+            cursor: 'pointer',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
+          <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{proposal.my_vote ? '✅' : '🤝'}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: proposal.my_vote ? '#15803d' : '#92400e' }}>
+              {proposal.my_vote ? '精算提案を承認済み' : '精算の承認が必要です'}
+            </div>
+            <div style={{ fontSize: '0.78rem', color: proposal.my_vote ? '#166534' : '#78350f', marginTop: 2 }}>
+              {proposal.proposed_by_user?.display_name}さんの提案 ·
+              承認 {proposal.vote_count}/{proposal.total_members} 人
+            </div>
+            {/* 進捗バー */}
+            <div style={{ height: 4, background: 'rgba(0,0,0,0.1)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+              <div style={{
+                height: '100%', borderRadius: 2,
+                background: proposal.my_vote ? '#22c55e' : '#f59e0b',
+                width: `${(proposal.vote_count / proposal.total_members) * 100}%`,
+              }} />
+            </div>
+          </div>
+          <span style={{ fontSize: '0.8rem', color: proposal.my_vote ? '#15803d' : '#92400e', flexShrink: 0 }}>→</span>
+        </div>
+      ))}
 
       {/* クイックアクション */}
       <div className="quick-actions">

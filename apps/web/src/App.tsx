@@ -11,6 +11,7 @@ import SettlementHistoryPage from '@/pages/SettlementHistoryPage'
 import MembersPage from '@/pages/MembersPage'
 import MyPaymentsPage from '@/pages/MyPaymentsPage'
 import JoinGroupPage from '@/pages/JoinGroupPage'
+import ProposalPage from '@/pages/ProposalPage'
 
 function SwipeNavigation() {
   useSwipeNavigation()
@@ -38,8 +39,9 @@ export default function App() {
         <Route path="/"                          element={<HomePage />} />
         <Route path="/payments/new"              element={<PaymentReportPage />} />
         <Route path="/payments/:paymentId"       element={<ApprovalPage />} />
-        <Route path="/settlements/new"           element={<SettlementPage />} />
-        <Route path="/settlements/:settlementId" element={<SettlementResultPage />} />
+        <Route path="/settlements/new"                    element={<SettlementPage />} />
+        <Route path="/settlements/proposals/:proposalId" element={<ProposalPage />} />
+        <Route path="/settlements/:settlementId"         element={<SettlementResultPage />} />
         <Route path="/settlements/history"       element={<SettlementHistoryPage />} />
         <Route path="/members"                   element={<MembersPage />} />
         <Route path="/my-payments"               element={<MyPaymentsPage />} />

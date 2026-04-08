@@ -9,7 +9,7 @@ import settlements from './routes/settlements'
 const app = new Hono()
 
 app.use('*', logger())
-app.use('*', cors({ origin: '*' }))
+app.use('*', cors({ origin: '*' })) // root の cors が先に処理するためワイルドカードで可
 
 app.get('/health', (c) => c.json({ ok: true }))
 app.post('/ping', (c) => c.json({ ok: true, ts: Date.now() }))
