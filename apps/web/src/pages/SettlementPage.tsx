@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createProposal, getProposals } from '@/lib/api'
+import { shareToLine } from '@/lib/liff'
 import type { NettingMethod, SettlementProposal } from '@/types'
 
 export default function SettlementPage() {
@@ -19,10 +20,18 @@ export default function SettlementPage() {
   })
   const hasPending = proposals.length > 0
 
+  const [proposed, setProposed] = useState(false)
+
   const mutation = useMutation({
     mutationFn: () => createProposal(groupId, method),
-    onSuccess: () => navigate('/'),
+    onSuccess: () => setProposed(true),
   })
+
+  async function handleShare() {
+    const liffUrl = `https://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
+    await shareToLine(`🤝 精算が提案されました。\n\nアプリを開いて承認してください 👇\n${liffUrl}`)
+    navigate('/')
+  }
 
   return (
     <div className="page">
@@ -31,6 +40,32 @@ export default function SettlementPage() {
         精算を提案する
       </div>
 
+      {/* 提案完了 → 通知画面 */}
+      {proposed && (
+        <>
+          <div style={{ textAlign: 'center', padding: '24px 0 16px' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 8 }}>🤝</div>
+            <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 4 }}>提案しました</div>
+            <div style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
+              全員が承認すると精算が実行されます
+            </div>
+          </div>
+          <div className="card" style={{ textAlign: 'left' }}>
+            <div style={{ fontWeight: 700, marginBottom: 6 }}>📣 メンバーに通知する</div>
+            <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginBottom: 12, lineHeight: 1.6 }}>
+              LINE グループに承認依頼を送りましょう。タップするとシェア画面が開きます。
+            </div>
+            <button className="btn-primary" onClick={handleShare}>
+              LINE グループに通知する
+            </button>
+          </div>
+          <button className="btn-ghost" style={{ color: 'var(--color-text-sub)' }} onClick={() => navigate('/')}>
+            通知せずにホームへ
+          </button>
+        </>
+      )}
+
+      {!proposed && <>
       {/* 全員合意の説明 */}
       <div className="card" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #bbf7d0', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>🤝</span>
@@ -119,6 +154,7 @@ export default function SettlementPage() {
           </div>
         </>
       )}
+      </>}
     </div>
   )
 }

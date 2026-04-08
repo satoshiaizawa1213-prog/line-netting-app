@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGroupMembers, createPayment, deletePayment } from '@/lib/api'
+import { shareToLine } from '@/lib/liff'
 import type { User } from '@/types'
 
 type SplitMode = 'equal' | 'weighted' | 'custom'
@@ -60,19 +61,29 @@ export default function PaymentReportPage() {
   })
   const weightedRemainder = total - weightedShares.reduce((s, v) => s + v, 0)
 
-  const canSubmit      = description.trim() !== '' && total > 0 && selectedList.length > 0 && isCustomValid
+  const canSubmit = description.trim() !== '' && total > 0 && selectedList.length > 0 && isCustomValid
+
+  const [submitted, setSubmitted] = useState<{ description: string; amount: number } | null>(null)
 
   const mutation = useMutation({
     mutationFn: createPayment,
-    onSuccess: async () => {
+    onSuccess: async (_, vars) => {
       if (resubmit?.oldPaymentId) {
         await deletePayment(resubmit.oldPaymentId).catch(() => {})
       }
       qc.invalidateQueries({ queryKey: ['payments', groupId] })
       qc.invalidateQueries({ queryKey: ['balance', groupId] })
-      navigate('/')
+      setSubmitted({ description: vars.description, amount: vars.amount })
     },
   })
+
+  async function handleShare() {
+    if (!submitted) return
+    const liffUrl = `https://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
+    const text = `💸 支払いを報告しました\n\n${submitted.description}：¥${submitted.amount.toLocaleString()}\n\n承認をお願いします 👇\n${liffUrl}`
+    await shareToLine(text)
+    navigate('/')
+  }
 
   function buildSplits() {
     if (splitMode === 'custom') {
@@ -114,6 +125,33 @@ export default function PaymentReportPage() {
   }
 
   const pageTitle = resubmit ? '支払いを修正して再申請' : '支払いを報告する'
+
+  // 送信成功 → 通知画面
+  if (submitted) {
+    return (
+      <div className="page" style={{ alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+        <div style={{ fontSize: '3rem', marginBottom: 8 }}>✅</div>
+        <div style={{ fontWeight: 800, fontSize: '1.1rem', marginBottom: 4 }}>報告しました</div>
+        <div style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem', marginBottom: 32 }}>
+          {submitted.description}：¥{submitted.amount.toLocaleString()}
+        </div>
+
+        <div className="card" style={{ width: '100%', textAlign: 'left', marginBottom: 16 }}>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>📣 メンバーに通知する</div>
+          <div style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', marginBottom: 12, lineHeight: 1.6 }}>
+            LINE グループに承認依頼を送りましょう。タップするとシェア画面が開きます。
+          </div>
+          <button className="btn-primary" onClick={handleShare}>
+            LINE グループに通知する
+          </button>
+        </div>
+
+        <button className="btn-ghost" style={{ width: '100%', color: 'var(--color-text-sub)' }} onClick={() => navigate('/')}>
+          通知せずにホームへ
+        </button>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return <div className="page"><div className="page-header">← {pageTitle}</div><p style={{ color: 'var(--color-text-sub)' }}>読み込み中...</p></div>
