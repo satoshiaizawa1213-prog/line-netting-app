@@ -177,14 +177,14 @@ async function bootstrap() {
         throw new Error(err.error ?? `参加に失敗しました (${joinRes.status})`)
       }
       localStorage.setItem('groupId', dbGroupId)
+    } else if (savedGroupId) {
+      // 既存グループあり（通知リンクや2回目以降の利用）→ 最優先で使用
+      dbGroupId = savedGroupId
     } else if (ctx) {
-      // LINEグループコンテキストあり（将来的にBot参加時に対応）
+      // 初回 & LINEグループコンテキストあり
       const groupData = await ensureGroup(ctx.groupId)
       dbGroupId = groupData.id
       localStorage.setItem('groupId', dbGroupId)
-    } else if (savedGroupId) {
-      // 2回目以降の利用
-      dbGroupId = savedGroupId
     } else {
       // 初回かつグループ未設定 → グループ作成UI
       dbGroupId = await showGroupSetup()
