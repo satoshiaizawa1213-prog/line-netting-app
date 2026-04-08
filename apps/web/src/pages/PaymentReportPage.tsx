@@ -91,9 +91,9 @@ export default function PaymentReportPage() {
     if (result.status === 'sent') {
       navigate('/')
     } else if (result.status === 'cancelled') {
-      // キャンセルはそのまま画面に留まる
+      setShareError('キャンセルされました。もう一度お試しください。')
     } else {
-      setShareError(result.message ?? '通知の送信に失敗しました')
+      setShareError(`[${result.status}] ${result.message ?? '通知の送信に失敗しました'}`)
     }
   }
 

@@ -70,29 +70,34 @@ export async function shareToLine(
   text: string
 ): Promise<{ status: 'sent' | 'cancelled' | 'unavailable' | 'error'; message?: string }> {
   const ctx = liff.getContext()
-  const inChat = ctx?.type === 'group' || ctx?.type === 'room' || ctx?.type === 'utou'
+  const ctxType = ctx?.type ?? 'none'
+  const inChat = ctxType === 'group' || ctxType === 'room' || ctxType === 'utou'
+  const canSend = liff.isApiAvailable('sendMessages')
+  const canPick = liff.isApiAvailable('shareTargetPicker')
+
+  console.log(`[shareToLine] ctxType=${ctxType} inChat=${inChat} canSend=${canSend} canPick=${canPick}`)
 
   // グループ/トークから開かれている場合はそのチャットに直接送信
-  if (inChat && liff.isApiAvailable('sendMessages')) {
+  if (inChat && canSend) {
     try {
       await liff.sendMessages([{ type: 'text', text }])
       return { status: 'sent' }
     } catch (e) {
-      return { status: 'error', message: String(e) }
+      return { status: 'error', message: `sendMessages失敗(ctx=${ctxType}): ${String(e)}` }
     }
   }
 
   // それ以外は shareTargetPicker で送信先を選択
-  if (!liff.isApiAvailable('shareTargetPicker')) {
+  if (!canPick) {
     return {
       status: 'unavailable',
-      message: 'グループトークからアプリを開くか、LINE Developers Console で「Share target picker」を ON にしてください。',
+      message: `ctx=${ctxType} / sendMessages=${canSend} / shareTargetPicker=${canPick}。グループトークのリンクからアプリを開くか、LINE Developers で「Share target picker」を ON にしてください。`,
     }
   }
   try {
     const result = await liff.shareTargetPicker([{ type: 'text', text }], { isMultiple: false })
     return { status: result?.status === 'success' ? 'sent' : 'cancelled' }
   } catch (e) {
-    return { status: 'error', message: String(e) }
+    return { status: 'error', message: `shareTargetPicker失敗: ${String(e)}` }
   }
 }
