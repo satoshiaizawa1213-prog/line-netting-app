@@ -179,7 +179,7 @@ export default function HomePage() {
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/my-payments')}>
           <span className="icon">💳</span>
-          <span>支払いタスク</span>
+          <span>振込み・受け取り</span>
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/members')}>
           <span className="icon">👥</span>

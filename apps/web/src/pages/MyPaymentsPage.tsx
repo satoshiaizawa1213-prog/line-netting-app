@@ -43,12 +43,12 @@ export default function MyPaymentsPage() {
     <div className="page">
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
-        支払い・受け取りタスク
+        振込み・受け取り
       </div>
 
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, background: 'var(--color-card)', borderRadius: 12, padding: 4 }}>
-        {([['pay', '支払い', pendingPay.length], ['receive', '受け取り', pendingRcv.length]] as const).map(([key, label, count]) => (
+        {([['pay', '振込み', pendingPay.length], ['receive', '受け取り', pendingRcv.length]] as const).map(([key, label, count]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -75,13 +75,13 @@ export default function MyPaymentsPage() {
           {payTasks.length === 0 && (
             <div className="card empty-state">
               <div className="empty-state-icon">✅</div>
-              <div className="empty-state-title">支払いタスクはありません</div>
-              <div className="empty-state-desc">精算が実行されると支払い先が表示されます</div>
+              <div className="empty-state-title">振込みはありません</div>
+              <div className="empty-state-desc">精算が実行されると振込み先が表示されます</div>
             </div>
           )}
           {pendingPay.length > 0 && (
             <section>
-              <div className="section-title">未払い ({pendingPay.length})</div>
+              <div className="section-title">未振込 ({pendingPay.length})</div>
               <div className="card" style={{ padding: '4px 16px' }}>
                 {pendingPay.map((t, i) => (
                   <PayTaskCard key={t.id} task={t} onToggle={(paid) => payMutation.mutate({ id: t.id, paid })} isPending={payMutation.isPending} isLast={i === pendingPay.length - 1} />
@@ -91,7 +91,7 @@ export default function MyPaymentsPage() {
           )}
           {completedPay.length > 0 && (
             <section>
-              <div className="section-title">支払い済み ({completedPay.length})</div>
+              <div className="section-title">振込み済み ({completedPay.length})</div>
               <div className="card" style={{ padding: '4px 16px', opacity: 0.75 }}>
                 {completedPay.map((t, i) => (
                   <PayTaskCard key={t.id} task={t} onToggle={(paid) => payMutation.mutate({ id: t.id, paid })} isPending={payMutation.isPending} isLast={i === completedPay.length - 1} />
@@ -166,7 +166,7 @@ function PayTaskCard({
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 600, fontSize: '0.93rem', textDecoration: task.paid ? 'line-through' : 'none', color: task.paid ? 'var(--color-text-sub)' : 'var(--color-text)' }}>
-          {task.to_user?.display_name ?? '不明'} に支払う
+          {task.to_user?.display_name ?? '不明'} に振り込む
         </div>
         <div style={{ fontSize: '0.77rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{date}</div>
       </div>
