@@ -98,7 +98,7 @@ export default function HomePage() {
               {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
             </div>
             <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
-              {myBalance > 0 ? '受け取り予定' : myBalance < 0 ? '支払い予定' : '精算済み ✓'}
+              {myBalance > 0 ? '受取り予定' : myBalance < 0 ? '支払い予定' : '精算済み ✓'}
             </div>
           </>
         )}
@@ -179,7 +179,7 @@ export default function HomePage() {
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/my-payments')}>
           <span className="icon">💳</span>
-          <span>振込み・受け取り</span>
+          <span>振込み・受取り</span>
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/members')}>
           <span className="icon">👥</span>

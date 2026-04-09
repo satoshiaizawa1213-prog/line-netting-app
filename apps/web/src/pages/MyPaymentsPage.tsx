@@ -43,12 +43,12 @@ export default function MyPaymentsPage() {
     <div className="page">
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
-        振込み・受け取り
+        振込み・受取り
       </div>
 
       {/* タブ */}
       <div style={{ display: 'flex', gap: 8, background: 'var(--color-card)', borderRadius: 12, padding: 4 }}>
-        {([['pay', '振込み', pendingPay.length], ['receive', '受け取り', pendingRcv.length]] as const).map(([key, label, count]) => (
+        {([['pay', '振込み', pendingPay.length], ['receive', '受取り', pendingRcv.length]] as const).map(([key, label, count]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -102,14 +102,14 @@ export default function MyPaymentsPage() {
         </>
       )}
 
-      {/* 受け取りタブ */}
+      {/* 受取りタブ */}
       {!isLoading && tab === 'receive' && (
         <>
           {receiveTasks.length === 0 && (
             <div className="card empty-state">
               <div className="empty-state-icon">💰</div>
-              <div className="empty-state-title">受け取りタスクはありません</div>
-              <div className="empty-state-desc">精算が実行されると受け取り先が表示されます</div>
+              <div className="empty-state-title">受取りタスクはありません</div>
+              <div className="empty-state-desc">精算が実行されると受取り先が表示されます</div>
             </div>
           )}
           {pendingRcv.length > 0 && (
@@ -205,7 +205,7 @@ function ReceiveTaskCard({
       </button>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontWeight: 600, fontSize: '0.93rem', textDecoration: task.received ? 'line-through' : 'none', color: task.received ? 'var(--color-text-sub)' : 'var(--color-text)' }}>
-          {task.from_user?.display_name ?? '不明'} から受け取る
+          {task.from_user?.display_name ?? '不明'} から受取る
         </div>
         <div style={{ fontSize: '0.77rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{date}</div>
       </div>
