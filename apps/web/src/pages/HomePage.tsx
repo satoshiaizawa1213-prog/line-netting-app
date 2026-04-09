@@ -98,7 +98,7 @@ export default function HomePage() {
               {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
             </div>
             <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
-              {myBalance > 0 ? '受取り予定' : myBalance < 0 ? '支払い予定' : '精算済み ✓'}
+              {myBalance > 0 ? '受取り予定' : myBalance < 0 ? '支払い予定' : pending.length > 0 ? '承認待ちあり' : '精算済み ✓'}
             </div>
           </>
         )}
