@@ -79,6 +79,18 @@ export interface MyPaymentTask {
   } | null
 }
 
+export interface MyReceiveTask {
+  id: string
+  amount: number
+  received: boolean
+  from_user: Pick<User, 'id' | 'display_name' | 'picture_url'> | null
+  settlement: {
+    id: string
+    created_at: string
+    method: NettingMethod
+  } | null
+}
+
 export interface GroupBalance {
   user_id: string
   balance: number

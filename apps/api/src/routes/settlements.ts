@@ -414,4 +414,62 @@ settlements.patch('/results/:resultId/paid', async (c) => {
   return c.json({ ok: true })
 })
 
+// ─── 自分の受け取りタスク ────────────────────────────────────
+settlements.get('/groups/:groupId/my-receive-tasks', async (c) => {
+  const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  const { data: settlementRows, error: sErr } = await db
+    .from('settlements')
+    .select('id, created_at, method')
+    .eq('group_id', groupId)
+    .order('created_at', { ascending: false })
+
+  if (sErr) return c.json({ error: 'DB error' }, 500)
+  if (!settlementRows || settlementRows.length === 0) return c.json([])
+
+  const settlementIds = settlementRows.map((s: { id: string }) => s.id)
+
+  const { data: resultRows, error: rErr } = await db
+    .from('settlement_results')
+    .select('id, settlement_id, from_user_id, amount, received')
+    .in('settlement_id', settlementIds)
+    .eq('to_user_id', user.id)
+
+  if (rErr) return c.json({ error: 'DB error' }, 500)
+  if (!resultRows || resultRows.length === 0) return c.json([])
+
+  const fromUserIds = [...new Set(resultRows.map((r: { from_user_id: string }) => r.from_user_id))]
+  const { data: userRows } = await db.from('users').select('id, display_name, picture_url').in('id', fromUserIds)
+
+  const userMap = new Map((userRows ?? []).map((u: { id: string }) => [u.id, u]))
+  const settlementMap = new Map(settlementRows.map((s: { id: string; created_at: string; method: string }) => [s.id, s]))
+
+  const result = resultRows.map((r: { id: string; settlement_id: string; from_user_id: string; amount: number; received: boolean }) => ({
+    id:         r.id,
+    amount:     r.amount,
+    received:   r.received,
+    from_user:  userMap.get(r.from_user_id) ?? null,
+    settlement: settlementMap.get(r.settlement_id) ?? null,
+  }))
+
+  return c.json(result)
+})
+
+// ─── 受け取りタスクの受取済み状態を更新 ──────────────────────
+settlements.patch('/results/:resultId/received', async (c) => {
+  const { resultId } = c.req.param()
+  const user = c.get('user')
+  const received = c.req.query('received') === 'true'
+
+  const { data: result, error: fetchError } = await db
+    .from('settlement_results').select('to_user_id').eq('id', resultId).single()
+  if (fetchError || !result) return c.json({ error: 'Not found' }, 404)
+  if (result.to_user_id !== user.id) return c.json({ error: 'Forbidden' }, 403)
+
+  const { error } = await db.from('settlement_results').update({ received }).eq('id', resultId)
+  if (error) return c.json({ error: 'DB error' }, 500)
+  return c.json({ ok: true })
+})
+
 export default settlements

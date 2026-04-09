@@ -6,6 +6,7 @@ import type {
   GroupBalance,
   User,
   MyPaymentTask,
+  MyReceiveTask,
   SettlementProposal,
 } from '@/types'
 
@@ -139,6 +140,16 @@ export function getMyPaymentTasks(groupId: string) {
 
 export function updatePaymentTaskPaid(resultId: string, paid: boolean) {
   return request<{ ok: boolean }>(`/settlements/results/${resultId}/paid?paid=${paid}`, {
+    method: 'PATCH',
+  })
+}
+
+export function getMyReceiveTasks(groupId: string) {
+  return request<MyReceiveTask[]>(`/settlements/groups/${groupId}/my-receive-tasks`)
+}
+
+export function updateReceiveTaskReceived(resultId: string, received: boolean) {
+  return request<{ ok: boolean }>(`/settlements/results/${resultId}/received?received=${received}`, {
     method: 'PATCH',
   })
 }
