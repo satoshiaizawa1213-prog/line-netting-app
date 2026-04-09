@@ -170,12 +170,23 @@ export default function HomePage() {
         </button>
         <button
           className="quick-action-btn"
-          onClick={() => navigate('/settlements/new', { state: { pendingCount: pending.length } })}
-          disabled={approved.length === 0}
-          style={approved.length > 0 ? { borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : {}}
+          onClick={() => {
+            const pendingProposal = proposals.find((p) => !p.my_vote)
+            if (pendingProposal) {
+              navigate(`/settlements/proposals/${pendingProposal.id}`)
+            } else {
+              navigate('/settlements/new', { state: { pendingCount: pending.length } })
+            }
+          }}
+          disabled={approved.length === 0 && proposals.length === 0}
+          style={approved.length > 0 || proposals.length > 0 ? { borderColor: 'var(--color-primary)', color: 'var(--color-primary)' } : {}}
         >
           <span className="icon">🤝</span>
-          <span>精算する{approved.length > 0 ? ` (${approved.length})` : ''}</span>
+          <span>
+            {proposals.some((p) => !p.my_vote)
+              ? '精算を承認する'
+              : `精算する${approved.length > 0 ? ` (${approved.length})` : ''}`}
+          </span>
         </button>
         <button className="quick-action-btn" onClick={() => navigate('/my-payments')}>
           <span className="icon">💳</span>
