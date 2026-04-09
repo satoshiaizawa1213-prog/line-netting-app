@@ -68,7 +68,6 @@ export default function HomePage() {
 
       {/* ヘッダー */}
       <div style={{ paddingTop: 4 }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>グループ</div>
         <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {groupInfo?.name ?? '読み込み中…'}
         </div>
