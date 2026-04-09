@@ -67,16 +67,11 @@ export default function HomePage() {
       <PullRefreshIndicator pullY={pullY} pullState={pullState} />
 
       {/* ヘッダー */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 4 }}>
-        <div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>グループ</div>
-          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 240 }}>
-            {groupInfo?.name ?? '読み込み中…'}
-          </div>
+      <div style={{ paddingTop: 4 }}>
+        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-text-sub)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>グループ</div>
+        <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {groupInfo?.name ?? '読み込み中…'}
         </div>
-        <button onClick={reload} className="btn-ghost" style={{ width: 'auto', fontSize: '0.8rem', padding: '6px 12px', borderRadius: 8, border: '1px solid var(--color-border)', color: 'var(--color-text-sub)', background: 'var(--color-card)' }}>
-          ↻ 更新
-        </button>
       </div>
 
       {/* 残高カード */}

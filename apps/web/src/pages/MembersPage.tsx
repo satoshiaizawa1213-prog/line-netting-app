@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getGroupMembers, removeMember, updateMemberWeight } from '@/lib/api'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { User } from '@/types'
 
 export default function MembersPage() {
@@ -36,6 +38,8 @@ export default function MembersPage() {
     },
   })
 
+  const { pullY, pullState } = usePullToRefresh(() => qc.invalidateQueries({ queryKey: ['members', groupId] }))
+
   function copyInviteLink() {
     const liffId    = import.meta.env.VITE_LIFF_ID as string
     const joinToken = localStorage.getItem('joinToken') ?? ''
@@ -62,6 +66,7 @@ export default function MembersPage() {
 
   return (
     <div className="page">
+      <PullRefreshIndicator pullY={pullY} pullState={pullState} />
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
         メンバー管理

@@ -1,6 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getProposals, approveProposal, cancelProposal } from '@/lib/api'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { SettlementProposal } from '@/types'
 
 const METHOD_LABEL: Record<string, string> = {
@@ -41,9 +43,12 @@ export default function ProposalPage() {
     },
   })
 
+  const { pullY, pullState } = usePullToRefresh(() => qc.invalidateQueries({ queryKey: ['proposals', groupId] }))
+
   if (isLoading) {
     return (
       <div className="page">
+        <PullRefreshIndicator pullY={pullY} pullState={pullState} />
         <div className="page-header">
           <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)' }}>←</button>
           精算の承認
@@ -77,6 +82,7 @@ export default function ProposalPage() {
 
   return (
     <div className="page">
+      <PullRefreshIndicator pullY={pullY} pullState={pullState} />
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)' }}>←</button>
         精算の承認

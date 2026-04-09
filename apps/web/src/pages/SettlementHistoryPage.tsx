@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getSettlementHistory } from '@/lib/api'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { Settlement } from '@/types'
 
 const METHOD_LABEL: Record<string, string> = {
@@ -11,6 +13,7 @@ const METHOD_LABEL: Record<string, string> = {
 
 export default function SettlementHistoryPage() {
   const navigate  = useNavigate()
+  const qc        = useQueryClient()
   const groupId   = sessionStorage.getItem('groupId') ?? ''
   const myUserId  = sessionStorage.getItem('userId') ?? ''
   const [openId, setOpenId] = useState<string | null>(null)
@@ -20,8 +23,11 @@ export default function SettlementHistoryPage() {
     queryFn:  () => getSettlementHistory(groupId),
   })
 
+  const { pullY, pullState } = usePullToRefresh(() => qc.invalidateQueries({ queryKey: ['settlements', groupId] }))
+
   return (
     <div className="page">
+      <PullRefreshIndicator pullY={pullY} pullState={pullState} />
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
         精算履歴

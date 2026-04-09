@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getMyPaymentTasks, updatePaymentTaskPaid, getMyReceiveTasks, updateReceiveTaskReceived } from '@/lib/api'
+import { usePullToRefresh } from '@/hooks/usePullToRefresh'
+import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { MyPaymentTask, MyReceiveTask } from '@/types'
 
 type Tab = 'pay' | 'receive'
@@ -32,6 +34,12 @@ export default function MyPaymentsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-receive-tasks', groupId] }),
   })
 
+  const reload = () => {
+    qc.invalidateQueries({ queryKey: ['my-tasks', groupId] })
+    qc.invalidateQueries({ queryKey: ['my-receive-tasks', groupId] })
+  }
+  const { pullY, pullState } = usePullToRefresh(reload)
+
   const pendingPay   = payTasks.filter((t) => !t.paid)
   const completedPay = payTasks.filter((t) => t.paid)
   const pendingRcv   = receiveTasks.filter((t) => !t.received)
@@ -41,6 +49,7 @@ export default function MyPaymentsPage() {
 
   return (
     <div className="page">
+      <PullRefreshIndicator pullY={pullY} pullState={pullState} />
       <div className="page-header">
         <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
         振込み・受取り
