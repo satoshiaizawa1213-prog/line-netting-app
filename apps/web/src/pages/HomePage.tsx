@@ -82,7 +82,7 @@ export default function HomePage() {
       {/* 残高カード */}
       <div className="balance-card">
         <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-          あなたの残高
+          精算前の合計金額
         </div>
         {balanceLoading ? (
           <div style={{ height: 52, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '1.5rem', fontWeight: 800 }}>---</div>
@@ -98,7 +98,7 @@ export default function HomePage() {
               {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
             </div>
             <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
-              {myBalance > 0 ? '受け取り超過' : myBalance < 0 ? '支払い超過' : '精算済み ✓'}
+              {myBalance > 0 ? '受け取り予定' : myBalance < 0 ? '支払い予定' : '精算済み ✓'}
             </div>
           </>
         )}
