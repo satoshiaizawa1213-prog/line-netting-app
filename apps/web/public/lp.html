@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Netting App — グループの割り勘・精算をかんたんに</title>
+  <meta name="description" content="旅行・飲み会・日々の立替えをLINEで完結。Netting Appはグループの支払いを自動で計算し、振込み先を最小化します。" />
+  <meta property="og:title" content="Netting App — グループの割り勘・精算をかんたんに" />
+  <meta property="og:description" content="旅行・飲み会・日々の立替えをLINEで完結。支払いを記録して、精算時にまとめて計算。" />
+  <meta property="og:type" content="website" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #06C755;
+      --green-dark: #04a845;
+      --text: #1a1a2e;
+      --text-sub: #64748b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #064e3b 100%);
+      padding: 60px 20px 52px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%; transform: translateX(-50%);
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(6,199,85,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(6,199,85,0.15);
+      border: 1px solid rgba(6,199,85,0.4);
+      color: #4ade80;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: #4ade80; }
+    .hero p {
+      font-size: 0.95rem;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 32px;
+      max-width: 320px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .btn-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 14px 32px;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(6,199,85,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-line:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(6,199,85,0.5); }
+    .btn-line svg { width: 22px; height: 22px; fill: #fff; }
+
+    /* ── STATS ── */
+    .stats {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 20px;
+    }
+    .stats-inner {
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.5rem; font-weight: 900; color: var(--green); }
+    .stat-label { font-size: 0.72rem; color: var(--text-sub); margin-top: 2px; }
+
+    /* ── SECTION ── */
+    section { padding: 48px 20px; }
+    section:nth-child(even) { background: #fff; }
+    .section-inner { max-width: 480px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .section-desc {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      margin-bottom: 28px;
+    }
+
+    /* ── FEATURES ── */
+    .features { display: flex; flex-direction: column; gap: 16px; }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .feature-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0fdf4;
+      border-radius: 12px;
+    }
+    .feature-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+    .feature-desc { font-size: 0.83rem; color: var(--text-sub); line-height: 1.5; }
+
+    /* ── HOW TO USE ── */
+    .steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 20px; top: 24px; bottom: 24px; width: 2px;
+      background: linear-gradient(to bottom, var(--green), #4ade80);
+      border-radius: 2px;
+    }
+    .step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 16px 0;
+      position: relative;
+    }
+    .step-num {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-weight: 900;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 0 4px var(--bg);
+    }
+    .step-body { padding-top: 8px; }
+    .step-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+    .step-desc { font-size: 0.83rem; color: var(--text-sub); line-height: 1.5; }
+
+    /* ── USE CASES ── */
+    .use-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .use-case {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .use-case-icon { font-size: 2rem; margin-bottom: 8px; }
+    .use-case-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; }
+    .use-case-desc { font-size: 0.75rem; color: var(--text-sub); line-height: 1.4; }
+
+    /* ── CTA ── */
+    .cta {
+      background: linear-gradient(160deg, #0f172a, #064e3b);
+      padding: 56px 20px;
+      text-align: center;
+    }
+    .cta h2 { font-size: 1.5rem; font-weight: 900; color: #fff; margin-bottom: 8px; }
+    .cta p { font-size: 0.88rem; color: rgba(255,255,255,0.55); margin-bottom: 28px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #0f172a;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+    }
+    footer a { color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 8px; }
+
+    @media (max-width: 360px) {
+      .hero h1 { font-size: 1.6rem; }
+      .use-cases { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">LINE Mini App</div>
+  <h1>グループの割り勘を<br /><span>かんたん精算</span></h1>
+  <p>旅行・飲み会・日々の立替えを記録して、最小の振込み回数でスッキリ精算。</p>
+  <a href="https://line.me/R/app/" class="btn-line" id="open-app">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+    </svg>
+    LINEで開く（無料）
+  </a>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-inner">
+    <div class="stat">
+      <div class="stat-num">無料</div>
+      <div class="stat-label">完全無料で使える</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">自動</div>
+      <div class="stat-label">精算額を自動計算</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">最小</div>
+      <div class="stat-label">振込み回数を最小化</div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">Features</div>
+    <div class="section-title">これひとつで<br />割り勘が完結</div>
+    <div class="section-desc">アプリのインストール不要。LINEから直接使えます。</div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <div>
+          <div class="feature-title">支払いを記録</div>
+          <div class="feature-desc">誰がいくら立て替えたかをその場でサクッと記録。メンバーへの承認依頼もLINEで自動通知。</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤝</div>
+        <div>
+          <div class="feature-title">全員の合意で精算</div>
+          <div class="feature-desc">精算は全員の承認が揃ったときだけ実行。誰か一人の操作で勝手に精算されません。</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔢</div>
+        <div>
+          <div class="feature-title">振込み回数を最小化</div>
+          <div class="feature-desc">マルチラテラルネッティングで、複雑な貸し借りをまとめて最少の振込み回数に整理。</div>
+        </div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚖️</div>
+        <div>
+          <div class="feature-title">重み付け分割</div>
+          <div class="feature-desc">メンバーごとに負担割合を設定可能。社会人と学生が混在するグループでも公平に計算。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW TO USE -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">How to use</div>
+    <div class="section-title">3ステップで<br />すぐ使える</div>
+    <div class="section-desc">面倒な登録なし。LINEアカウントだけでOK。</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">グループを作成・招待</div>
+          <div class="step-desc">LINEからアプリを開いてグループを作成。招待リンクをトークで送るだけでメンバーが参加。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">支払いを記録・承認</div>
+          <div class="step-desc">立替えのたびに金額と説明を入力。他のメンバーが承認すると確定。LINEに通知が届きます。</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">精算を提案・完了</div>
+          <div class="step-desc">精算ボタンを押して提案。全員が承認したら自動で計算され、振込み先リストが表示されます。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">Use cases</div>
+    <div class="section-title">こんな場面で<br />活躍します</div>
+    <div class="section-desc" style="margin-bottom: 20px;">旅先での立替えから、日常の割り勘まで。</div>
+    <div class="use-cases">
+      <div class="use-case">
+        <div class="use-case-icon">✈️</div>
+        <div class="use-case-title">旅行・遠征</div>
+        <div class="use-case-desc">宿泊・交通・食事の立替えをまとめて精算</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🍻</div>
+        <div class="use-case-title">飲み会・食事</div>
+        <div class="use-case-desc">幹事の立替えをその場で記録してスムーズに</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🚕</div>
+        <div class="use-case-title">タクシー・交通</div>
+        <div class="use-case-desc">グループ移動の交通費を人数割りで計算</div>
+      </div>
+      <div class="use-case">
+        <div class="use-case-icon">🏠</div>
+        <div class="use-case-title">シェアハウス</div>
+        <div class="use-case-desc">日用品・光熱費の立替えを月次で精算</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <h2>さっそく使ってみる</h2>
+  <p>インストール不要・完全無料。<br />LINEアカウントだけで今すぐ始められます。</p>
+  <a href="https://line.me/R/app/" class="btn-line" id="open-app-2">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" fill="white"/>
+    </svg>
+    LINEで開く（無料）
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <a href="#">プライバシーポリシー</a>
+    <a href="#">お問い合わせ</a>
+  </div>
+  <div style="margin-top: 8px;">© 2025 Netting App</div>
+</footer>
+
+<script>
+  // LIFF ID を埋め込む（Vercel の環境変数からビルド時に注入できないため JS で設定）
+  // デプロイ後に LIFF ID を直接書き換えてください
+  const LIFF_ID = ''  // ← ここに LIFF ID を入力 例: '1234567890-abcdefgh'
+
+  function setLinks() {
+    const url = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : '#'
+    document.getElementById('open-app').href = url
+    document.getElementById('open-app-2').href = url
+  }
+  setLinks()
+</script>
+
+</body>
+</html>
