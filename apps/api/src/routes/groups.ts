@@ -107,6 +107,31 @@ groups.post('/:groupId/join', async (c) => {
   return c.json({ id: groupId })
 })
 
+/** グループを削除（作成者のみ・全データ連鎖削除） */
+groups.delete('/:groupId', async (c) => {
+  const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
+
+  // 最初に参加したメンバー（作成者）を取得
+  const { data: first } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .order('joined_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (!first || first.user_id !== user.id) {
+    return c.json({ error: 'Only the group creator can delete the group' }, 403)
+  }
+
+  const { error } = await db.from('groups').delete().eq('id', groupId)
+  if (error) return c.json({ error: 'DB error' }, 500)
+  return c.json({ ok: true })
+})
+
 /** 自分が参加しているグループ一覧 */
 groups.get('/my-groups', async (c) => {
   const user = c.get('user')

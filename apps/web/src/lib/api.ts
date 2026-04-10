@@ -58,6 +58,10 @@ export function getMyGroups() {
   return request<Array<{ id: string; name: string | null; created_at: string }>>('/groups/my-groups')
 }
 
+export function deleteGroup(groupId: string) {
+  return request<{ ok: boolean }>(`/groups/${groupId}`, { method: 'DELETE' })
+}
+
 export function getGroupMembers(groupId: string) {
   return request<User[]>(`/groups/${groupId}/members`)
 }

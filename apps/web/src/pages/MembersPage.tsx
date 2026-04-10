@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getGroupMembers, removeMember, updateMemberWeight } from '@/lib/api'
+import { getGroupMembers, removeMember, updateMemberWeight, deleteGroup } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { User } from '@/types'
@@ -15,6 +15,7 @@ export default function MembersPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [editWeightId,  setEditWeightId]  = useState<string | null>(null)
   const [weightInput,   setWeightInput]   = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const { data: members = [], isLoading } = useQuery<User[]>({
     queryKey: ['members', groupId],
@@ -35,6 +36,18 @@ export default function MembersPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['members', groupId] })
       setEditWeightId(null)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteGroup(groupId),
+    onSuccess: () => {
+      localStorage.removeItem('groupId')
+      localStorage.removeItem('joinToken')
+      sessionStorage.removeItem('groupId')
+      qc.clear()
+      // 他のグループがあれば切り替え、なければリロードしてグループ作成へ
+      window.location.reload()
     },
   })
 
@@ -96,6 +109,41 @@ export default function MembersPage() {
           例）重み 2:1:1 で 1,000円 → <strong>500円・250円・250円</strong>
         </p>
       </div>
+
+      {/* グループ削除（作成者のみ表示） */}
+      {!confirmDelete ? (
+        <button
+          onClick={() => setConfirmDelete(true)}
+          style={{ width: '100%', padding: '10px', fontSize: '0.85rem', background: 'none', border: '1px dashed var(--color-danger)', borderRadius: 10, color: 'var(--color-danger)', cursor: 'pointer' }}
+        >
+          🗑️ このグループを削除
+        </button>
+      ) : (
+        <div className="card" style={{ border: '1.5px solid var(--color-danger)', background: '#fff5f5' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-danger)', marginBottom: 6 }}>本当に削除しますか？</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', marginBottom: 14, lineHeight: 1.5 }}>
+            グループ内の支払い・精算履歴など全てのデータが削除されます。この操作は取り消せません。<br />
+            ※ 作成者以外はこの操作を実行できません。
+          </div>
+          {deleteMutation.isError && (
+            <div style={{ fontSize: '0.82rem', color: 'var(--color-danger)', marginBottom: 8 }}>
+              {(deleteMutation.error as Error)?.message ?? '削除に失敗しました'}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => setConfirmDelete(false)} className="btn-secondary" style={{ flex: 1 }}>
+              キャンセル
+            </button>
+            <button
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
+              style={{ flex: 1, padding: '12px', background: 'var(--color-danger)', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}
+            >
+              {deleteMutation.isPending ? '削除中…' : '削除する'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* メンバー一覧 */}
       <div className="card">
