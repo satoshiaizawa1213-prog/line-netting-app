@@ -4,6 +4,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
+import { AdBanner } from '@/components/AdBanner'
 import type { Payment, GroupBalance, SettlementProposal } from '@/types'
 
 export default function HomePage() {
@@ -277,6 +278,8 @@ export default function HomePage() {
       >
         📋 精算履歴を見る
       </button>
+
+      <AdBanner />
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { shareSettlementResult } from '@/lib/liff'
+import { AdBanner } from '@/components/AdBanner'
 import type { Settlement, SettlementResult } from '@/types'
 
 const METHOD_LABEL: Record<string, string> = {
@@ -95,6 +96,8 @@ export default function SettlementResultPage() {
       <p style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)', textAlign: 'center' }}>
         ※ 実際の支払いは各自で行ってください
       </p>
+
+      <AdBanner />
 
       <div className="bottom-actions">
         <button className="btn-primary" onClick={handleShare} disabled={sharing}>
