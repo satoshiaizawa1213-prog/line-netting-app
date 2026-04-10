@@ -4,14 +4,16 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
+import { GroupSwitcher } from '@/components/GroupSwitcher'
 import { AdBanner } from '@/components/AdBanner'
 import type { Payment, GroupBalance, SettlementProposal } from '@/types'
 
 export default function HomePage() {
-  const groupId = sessionStorage.getItem('groupId') ?? ''
+  const [groupId, setGroupId] = useState(sessionStorage.getItem('groupId') ?? '')
   const myUserId = sessionStorage.getItem('userId') ?? ''
   const navigate = useNavigate()
   const qc       = useQueryClient()
+  const [showSwitcher, setShowSwitcher] = useState(false)
 
   function reload() {
     qc.invalidateQueries({ queryKey: ['payments',  groupId] })
@@ -69,10 +71,28 @@ export default function HomePage() {
 
       {/* ヘッダー */}
       <div style={{ paddingTop: 4 }}>
-        <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {groupInfo?.name ?? '読み込み中…'}
-        </div>
+        <button
+          onClick={() => setShowSwitcher(true)}
+          style={{
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 6, maxWidth: '100%',
+          }}
+        >
+          <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {groupInfo?.name ?? '読み込み中…'}
+          </div>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', flexShrink: 0 }}>▼</span>
+        </button>
       </div>
+
+      {/* グループ切り替えシート */}
+      {showSwitcher && (
+        <GroupSwitcher
+          currentGroupId={groupId}
+          onClose={() => setShowSwitcher(false)}
+          onSwitch={(id) => { setGroupId(id); setShowSwitcher(false) }}
+        />
+      )}
 
       {/* 残高カード */}
       <div className="balance-card">

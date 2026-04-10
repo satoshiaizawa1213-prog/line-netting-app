@@ -107,6 +107,30 @@ groups.post('/:groupId/join', async (c) => {
   return c.json({ id: groupId })
 })
 
+/** 自分が参加しているグループ一覧 */
+groups.get('/my-groups', async (c) => {
+  const user = c.get('user')
+
+  const { data: memberRows, error } = await db
+    .from('group_members')
+    .select('group_id')
+    .eq('user_id', user.id)
+    .eq('is_active', true)
+
+  if (error) return c.json({ error: 'DB error' }, 500)
+  if (!memberRows || memberRows.length === 0) return c.json([])
+
+  const groupIds = memberRows.map((m: { group_id: string }) => m.group_id)
+
+  const { data: groupRows } = await db
+    .from('groups')
+    .select('id, name, created_at')
+    .in('id', groupIds)
+    .order('created_at', { ascending: false })
+
+  return c.json(groupRows ?? [])
+})
+
 /** グループ情報取得 */
 groups.get('/:groupId', async (c) => {
   const { groupId } = c.req.param()

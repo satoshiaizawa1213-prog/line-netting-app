@@ -54,6 +54,10 @@ export function getGroupInfo(groupId: string) {
   return request<{ id: string; name: string | null; created_at: string }>(`/groups/${groupId}`)
 }
 
+export function getMyGroups() {
+  return request<Array<{ id: string; name: string | null; created_at: string }>>('/groups/my-groups')
+}
+
 export function getGroupMembers(groupId: string) {
   return request<User[]>(`/groups/${groupId}/members`)
 }

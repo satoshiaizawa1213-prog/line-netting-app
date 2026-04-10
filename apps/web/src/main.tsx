@@ -167,6 +167,30 @@ async function bootstrap() {
 
     if (gidFromUrl) {
       // 招待リンク経由で参加（join_token を検証）
+      // 既存グループと異なる場合は確認
+      if (savedGroupId && savedGroupId !== gidFromUrl) {
+        const ok = window.confirm(
+          '別のグループの招待リンクです。\nこのグループに切り替えますか？\n\n（元のグループにはグループ名をタップして戻れます）'
+        )
+        if (!ok) {
+          // キャンセル → 既存グループをそのまま使う
+          dbGroupId = savedGroupId
+          // URL からパラメータを消してリロード
+          window.history.replaceState({}, '', window.location.pathname)
+          sessionStorage.setItem('groupId', dbGroupId)
+          sessionStorage.setItem('userId', meData.id)
+          ReactDOM.createRoot(root).render(
+            <React.StrictMode>
+              <QueryClientProvider client={queryClient}>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </QueryClientProvider>
+            </React.StrictMode>
+          )
+          return
+        }
+      }
       dbGroupId = gidFromUrl
       const joinRes = await fetch(
         `${import.meta.env.VITE_API_BASE_URL}/groups/${gidFromUrl}/join?token=${encodeURIComponent(tokenFromUrl)}`,
