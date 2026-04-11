@@ -79,7 +79,7 @@ export default function HomePage() {
           }}
         >
           <div style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {groupInfo?.name ?? '読み込み中…'}
+            {groupInfo ? (groupInfo.name || '名称未設定') : '読み込み中…'}
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', flexShrink: 0 }}>▼</span>
         </button>
