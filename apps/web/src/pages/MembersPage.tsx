@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getGroupMembers, removeMember, updateMemberWeight, deleteGroup } from '@/lib/api'
+import { getGroupMembers, removeMember, updateMemberWeight, deleteGroup, getMyGroups } from '@/lib/api'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import type { User } from '@/types'
@@ -21,6 +21,12 @@ export default function MembersPage() {
     queryKey: ['members', groupId],
     queryFn:  () => getGroupMembers(groupId),
   })
+
+  const { data: myGroups = [] } = useQuery({
+    queryKey: ['my-groups'],
+    queryFn: getMyGroups,
+  })
+  const isCreator = myGroups.find((g) => g.id === groupId)?.is_creator ?? false
 
   const removeMutation = useMutation({
     mutationFn: (userId: string) => removeMember(groupId, userId),
@@ -111,14 +117,15 @@ export default function MembersPage() {
       </div>
 
       {/* グループ削除（作成者のみ表示） */}
-      {!confirmDelete ? (
+      {isCreator && !confirmDelete && (
         <button
           onClick={() => setConfirmDelete(true)}
           style={{ width: '100%', padding: '10px', fontSize: '0.85rem', background: 'none', border: '1px dashed var(--color-danger)', borderRadius: 10, color: 'var(--color-danger)', cursor: 'pointer' }}
         >
           🗑️ このグループを削除
         </button>
-      ) : (
+      )}
+      {isCreator && confirmDelete && (
         <div className="card" style={{ border: '1.5px solid var(--color-danger)', background: '#fff5f5' }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-danger)', marginBottom: 6 }}>本当に削除しますか？</div>
           <div style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', marginBottom: 14, lineHeight: 1.5 }}>

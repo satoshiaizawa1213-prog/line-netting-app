@@ -153,7 +153,25 @@ groups.get('/my-groups', async (c) => {
     .in('id', groupIds)
     .order('created_at', { ascending: false })
 
-  return c.json(groupRows ?? [])
+  // 各グループの作成者（最古メンバー）を取得
+  const { data: allMembers } = await db
+    .from('group_members')
+    .select('group_id, user_id, joined_at')
+    .in('group_id', groupIds)
+    .eq('is_active', true)
+    .order('joined_at', { ascending: true })
+
+  const creatorMap = new Map<string, string>()
+  for (const m of (allMembers ?? []) as Array<{ group_id: string; user_id: string }>) {
+    if (!creatorMap.has(m.group_id)) creatorMap.set(m.group_id, m.user_id)
+  }
+
+  const result = (groupRows ?? []).map((g: { id: string; name: string | null; created_at: string }) => ({
+    ...g,
+    is_creator: creatorMap.get(g.id) === user.id,
+  }))
+
+  return c.json(result)
 })
 
 /** グループ情報取得 */

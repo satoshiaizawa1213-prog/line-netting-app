@@ -55,7 +55,7 @@ export function getGroupInfo(groupId: string) {
 }
 
 export function getMyGroups() {
-  return request<Array<{ id: string; name: string | null; created_at: string }>>('/groups/my-groups')
+  return request<Array<{ id: string; name: string | null; created_at: string; is_creator: boolean }>>('/groups/my-groups')
 }
 
 export function deleteGroup(groupId: string) {
@@ -87,12 +87,14 @@ export function createPayment(payload: {
   note?: string
   splits: Array<{ user_id: string; amount: number }>
 }) {
+  const idempotencyKey = crypto.randomUUID()
   const params = new URLSearchParams({
-    group_id:    payload.group_id,
-    payer_id:    payload.payer_id,
-    amount:      String(payload.amount),
-    description: payload.description,
-    splits:      JSON.stringify(payload.splits),
+    group_id:        payload.group_id,
+    payer_id:        payload.payer_id,
+    amount:          String(payload.amount),
+    description:     payload.description,
+    splits:          JSON.stringify(payload.splits),
+    idempotency_key: idempotencyKey,
   })
   if (payload.note) params.set('note', payload.note)
   return request<Payment>(`/payments?${params}`, { method: 'POST' })

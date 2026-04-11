@@ -54,10 +54,10 @@ export default function PaymentReportPage() {
   const customTotal    = [...selected].reduce((s, uid) => s + (Number(customAmounts[uid]) || 0), 0)
   const isCustomValid  = splitMode === 'custom' ? customTotal === total : true
 
-  // 傾斜割の各金額プレビュー
-  const totalWeight    = selectedList.reduce((s, m) => s + (m.weight ?? 1), 0)
+  // 傾斜割の各金額プレビュー（整数演算で端数を正確に分配）
+  const totalWeight = selectedList.reduce((s, m) => s + Math.round((m.weight ?? 1) * 1000), 0)
   const weightedShares = selectedList.map((m) => {
-    return Math.floor(total * (m.weight ?? 1) / totalWeight)
+    return Math.floor(total * Math.round((m.weight ?? 1) * 1000) / totalWeight)
   })
   const weightedRemainder = total - weightedShares.reduce((s, v) => s + v, 0)
 
@@ -108,25 +108,28 @@ export default function PaymentReportPage() {
   }
 
   function buildSplits() {
+    let raw: Array<{ user_id: string; amount: number }>
     if (splitMode === 'custom') {
-      return selectedList.map((m) => ({
+      raw = selectedList.map((m) => ({
         user_id: m.id,
         amount: Number(customAmounts[m.id] || 0),
       }))
-    }
-    if (splitMode === 'weighted') {
-      return selectedList.map((m, i) => ({
+    } else if (splitMode === 'weighted') {
+      raw = selectedList.map((m, i) => ({
         user_id: m.id,
         amount: weightedShares[i] + (i === 0 ? weightedRemainder : 0),
       }))
+    } else {
+      // 均等割り
+      const base      = Math.floor(total / selectedList.length)
+      const remainder = total - base * selectedList.length
+      raw = selectedList.map((m, i) => ({
+        user_id: m.id,
+        amount: i === 0 ? base + remainder : base,
+      }))
     }
-    // 均等割り
-    const base      = Math.floor(total / selectedList.length)
-    const remainder = total - base * selectedList.length
-    return selectedList.map((m, i) => ({
-      user_id: m.id,
-      amount: i === 0 ? base + remainder : base,
-    }))
+    // 0円のsplitを除外（金額が少なすぎて端数が回らないメンバー）
+    return raw.filter((s) => s.amount > 0)
   }
 
   function handleSubmit() {

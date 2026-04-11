@@ -300,10 +300,12 @@ settlements.post('/proposals/:proposalId/cancel', async (c) => {
   return c.json({ ok: true })
 })
 
-// ─── 精算履歴一覧 ────────────────────────────────────────────
+// ─── 精算履歴一覧（ページネーション対応） ────────────────────
 settlements.get('/groups/:groupId', async (c) => {
   const { groupId } = c.req.param()
   const user = c.get('user')
+  const limit  = Math.min(Number(c.req.query('limit'))  || 20, 100)
+  const offset = Math.max(Number(c.req.query('offset')) || 0, 0)
 
   if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
 
@@ -312,6 +314,7 @@ settlements.get('/groups/:groupId', async (c) => {
     .select('id, method, created_at, executed_by')
     .eq('group_id', groupId)
     .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
 
   if (sErr) return c.json({ error: 'DB error' }, 500)
   if (!settlementRows || settlementRows.length === 0) return c.json([])

@@ -8,7 +8,12 @@ let _cachedToken: string | null = null
 
 export async function initLiff(): Promise<void> {
   try {
-    await liff.init({ liffId: LIFF_ID })
+    await Promise.race([
+      liff.init({ liffId: LIFF_ID }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('LIFF初期化がタイムアウトしました（10秒）')), 10_000)
+      ),
+    ])
   } catch (e: unknown) {
     const err = e as { code?: string; message?: string }
     throw new Error(`liff.init failed: code=${err?.code} msg=${err?.message} liffId=${LIFF_ID}`)

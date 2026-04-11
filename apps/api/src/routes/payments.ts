@@ -9,15 +9,28 @@ payments.use('*', authMiddleware)
 /** 支払い報告を作成（クエリパラメータで受け取る） */
 payments.post('/', async (c) => {
   const user = c.get('user')
-  const group_id    = c.req.query('group_id') ?? ''
-  const payer_id    = c.req.query('payer_id') ?? ''
-  const amountRaw   = c.req.query('amount') ?? ''
-  const description = c.req.query('description') ?? ''
-  const note        = c.req.query('note') ?? null
-  const splitsRaw   = c.req.query('splits') ?? '[]'
+  const group_id       = c.req.query('group_id') ?? ''
+  const payer_id       = c.req.query('payer_id') ?? ''
+  const amountRaw      = c.req.query('amount') ?? ''
+  const description    = c.req.query('description') ?? ''
+  const note           = c.req.query('note') ?? null
+  const splitsRaw      = c.req.query('splits') ?? '[]'
+  const idempotencyKey = c.req.query('idempotency_key') ?? ''
 
   if (!group_id || !payer_id || !amountRaw || !description) {
     return c.json({ error: 'Missing required params' }, 400)
+  }
+
+  // 冪等性チェック: 同一キーで作成済みの場合はそれを返す
+  if (idempotencyKey) {
+    const { data: existing } = await db
+      .from('payments')
+      .select('*')
+      .eq('group_id', group_id)
+      .eq('reporter_id', user.id)
+      .eq('idempotency_key', idempotencyKey)
+      .maybeSingle()
+    if (existing) return c.json(existing, 201)
   }
 
   // amount バリデーション（正整数・上限100万円）
@@ -71,7 +84,7 @@ payments.post('/', async (c) => {
 
   const { data: payment, error: paymentError } = await db
     .from('payments')
-    .insert({ group_id, reporter_id: user.id, payer_id, amount, description, note })
+    .insert({ group_id, reporter_id: user.id, payer_id, amount, description, note, ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}) })
     .select()
     .single()
 
@@ -107,6 +120,8 @@ payments.post('/:paymentId/approve', async (c) => {
   const action  = c.req.query('action') as 'approved' | 'rejected' | undefined
   const comment = c.req.query('comment') ?? undefined
   if (!action) return c.json({ error: 'action is required' }, 400)
+  if (action !== 'approved' && action !== 'rejected') return c.json({ error: 'action must be approved or rejected' }, 400)
+  if (comment && comment.length > 500) return c.json({ error: 'comment must be 500 characters or less' }, 400)
 
   // 支払い報告を取得
   const { data: payment, error: fetchError } = await db

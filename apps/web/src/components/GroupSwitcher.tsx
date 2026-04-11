@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getMyGroups, ensureGroup } from '@/lib/api'
+import { getMyGroups, ensureGroup, deleteGroup } from '@/lib/api'
 
 interface Props {
   currentGroupId: string
@@ -16,6 +16,8 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
   const [error, setError] = useState('')
   const [created, setCreated] = useState<{ id: string; inviteUrl: string } | null>(null)
   const [copied, setCopied] = useState(false)
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const { data: groups = [], isLoading } = useQuery({
     queryKey: ['my-groups'],
@@ -65,6 +67,26 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
     onSwitch(created.id)
   }
 
+  async function handleDelete(groupId: string) {
+    setDeleting(true)
+    try {
+      await deleteGroup(groupId)
+      setDeleteTargetId(null)
+      qc.invalidateQueries({ queryKey: ['my-groups'] })
+      if (groupId === currentGroupId) {
+        localStorage.removeItem('groupId')
+        localStorage.removeItem('joinToken')
+        sessionStorage.removeItem('groupId')
+        qc.clear()
+        window.location.reload()
+      }
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '削除に失敗しました')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   return (
     <>
       {/* オーバーレイ */}
@@ -105,44 +127,80 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
 
             {!isLoading && groups.map((g) => {
               const isCurrent = g.id === currentGroupId
+              const isDeleteTarget = deleteTargetId === g.id
               return (
-                <button
-                  key={g.id}
-                  onClick={() => handleSwitch(g.id)}
-                  style={{
-                    width: '100%', padding: '14px 20px',
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    background: isCurrent ? 'rgba(6,199,85,0.06)' : 'transparent',
-                    border: 'none', cursor: 'pointer', textAlign: 'left',
-                    borderBottom: '1px solid var(--color-border)',
-                  }}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                    background: isCurrent ? 'var(--color-primary)' : 'var(--color-border)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '1rem',
-                  }}>
-                    {isCurrent ? '✓' : '👥'}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{
-                      fontWeight: 700, fontSize: '0.95rem',
-                      color: isCurrent ? 'var(--color-primary)' : 'var(--color-text)',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {g.name ?? '名称未設定'}
+                <div key={g.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <div
+                    style={{
+                      width: '100%', padding: '14px 20px',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                    }}
+                  >
+                    <div
+                      onClick={() => handleSwitch(g.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        flex: 1, minWidth: 0, cursor: 'pointer',
+                      }}
+                    >
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                        background: isCurrent ? 'var(--color-primary)' : 'var(--color-border)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1rem',
+                      }}>
+                        {isCurrent ? '✓' : '👥'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontWeight: 700, fontSize: '0.95rem',
+                          color: isCurrent ? 'var(--color-primary)' : 'var(--color-text)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {g.name ?? '名称未設定'}
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
+                          {new Date(g.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' })}作成
+                        </div>
+                      </div>
+                      {isCurrent && (
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0 }}>
+                          使用中
+                        </span>
+                      )}
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
-                      {new Date(g.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' })}作成
-                    </div>
+                    {g.is_creator && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setDeleteTargetId(isDeleteTarget ? null : g.id) }}
+                        style={{
+                          width: 'auto', padding: '4px 8px', fontSize: '0.75rem',
+                          background: 'none', border: '1px solid var(--color-border)',
+                          borderRadius: 6, color: 'var(--color-text-sub)', cursor: 'pointer', flexShrink: 0,
+                        }}
+                      >
+                        {isDeleteTarget ? '✕' : '削除'}
+                      </button>
+                    )}
                   </div>
-                  {isCurrent && (
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--color-primary)', flexShrink: 0 }}>
-                      使用中
-                    </span>
+                  {isDeleteTarget && (
+                    <div style={{ padding: '0 20px 14px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--color-danger)', flex: 1 }}>
+                        全データが削除されます
+                      </span>
+                      <button
+                        onClick={() => handleDelete(g.id)}
+                        disabled={deleting}
+                        style={{
+                          width: 'auto', padding: '6px 14px', fontSize: '0.8rem',
+                          background: 'var(--color-danger)', border: 'none', borderRadius: 8,
+                          color: '#fff', fontWeight: 700, cursor: 'pointer',
+                        }}
+                      >
+                        {deleting ? '削除中…' : '削除する'}
+                      </button>
+                    </div>
                   )}
-                </button>
+                </div>
               )
             })}
 
