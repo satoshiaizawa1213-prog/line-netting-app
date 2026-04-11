@@ -97,7 +97,12 @@ groups.post('/:groupId/join', async (c) => {
     .maybeSingle()
 
   if (!group) return c.json({ error: 'Group not found' }, 404)
-  if (!token || group.join_token !== token) return c.json({ error: 'Invalid invite token' }, 403)
+
+  // 既にアクティブメンバーならトークン検証なしで通す
+  const isMember = await assertMember(groupId, user.id)
+  if (!isMember) {
+    if (!token || group.join_token !== token) return c.json({ error: 'Invalid invite token' }, 403)
+  }
 
   await db.from('group_members').upsert(
     { group_id: groupId, user_id: user.id, is_active: true },
