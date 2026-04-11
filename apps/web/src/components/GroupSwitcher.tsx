@@ -185,8 +185,20 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
                         }}>
                           {g.name ?? '名称未設定'}
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
-                          {new Date(g.created_at).toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric' })}作成
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                          {g.members.slice(0, 5).map((m) => (
+                            m.picture_url ? (
+                              <img key={m.id} src={m.picture_url} alt="" style={{ width: 20, height: 20, borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-card)' }} />
+                            ) : (
+                              <div key={m.id} style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem' }}>👤</div>
+                            )
+                          ))}
+                          {g.members.length > 5 && (
+                            <span style={{ fontSize: '0.65rem', color: 'var(--color-text-sub)' }}>+{g.members.length - 5}</span>
+                          )}
+                          <span style={{ fontSize: '0.68rem', color: 'var(--color-text-sub)', marginLeft: 4 }}>
+                            {g.members.length}人
+                          </span>
                         </div>
                       </div>
                       {isCurrent && (

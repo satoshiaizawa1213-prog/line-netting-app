@@ -177,13 +177,25 @@ groups.get('/my-groups', async (c) => {
     .order('joined_at', { ascending: true })
 
   const creatorMap = new Map<string, string>()
+  const groupMembersMap = new Map<string, string[]>()
   for (const m of (allMembers ?? []) as Array<{ group_id: string; user_id: string }>) {
     if (!creatorMap.has(m.group_id)) creatorMap.set(m.group_id, m.user_id)
+    const list = groupMembersMap.get(m.group_id) ?? []
+    list.push(m.user_id)
+    groupMembersMap.set(m.group_id, list)
   }
+
+  // メンバーのアイコン情報を取得
+  const allUserIds = [...new Set((allMembers ?? []).map((m: { user_id: string }) => m.user_id))]
+  const { data: userRows } = allUserIds.length > 0
+    ? await db.from('users').select('id, display_name, picture_url').in('id', allUserIds)
+    : { data: [] }
+  const userMap = new Map((userRows ?? []).map((u: { id: string; display_name: string; picture_url: string | null }) => [u.id, u]))
 
   const result = (groupRows ?? []).map((g: { id: string; name: string | null; created_at: string }) => ({
     ...g,
     is_creator: creatorMap.get(g.id) === user.id,
+    members: (groupMembersMap.get(g.id) ?? []).map((uid) => userMap.get(uid)).filter(Boolean),
   }))
 
   return c.json(result)

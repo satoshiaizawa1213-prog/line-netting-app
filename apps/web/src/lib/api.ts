@@ -55,7 +55,10 @@ export function getGroupInfo(groupId: string) {
 }
 
 export function getMyGroups() {
-  return request<Array<{ id: string; name: string | null; created_at: string; is_creator: boolean }>>('/groups/my-groups')
+  return request<Array<{
+    id: string; name: string | null; created_at: string; is_creator: boolean;
+    members: Array<{ id: string; display_name: string; picture_url: string | null }>
+  }>>('/groups/my-groups')
 }
 
 export function deleteGroup(groupId: string) {
