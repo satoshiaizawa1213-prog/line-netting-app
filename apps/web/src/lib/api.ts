@@ -62,6 +62,10 @@ export function deleteGroup(groupId: string) {
   return request<{ ok: boolean }>(`/groups/${groupId}`, { method: 'DELETE' })
 }
 
+export function renameGroup(groupId: string, name: string) {
+  return request<{ ok: boolean }>(`/groups/${groupId}/name?name=${encodeURIComponent(name)}`, { method: 'PATCH' })
+}
+
 export function getGroupMembers(groupId: string) {
   return request<User[]>(`/groups/${groupId}/members`)
 }

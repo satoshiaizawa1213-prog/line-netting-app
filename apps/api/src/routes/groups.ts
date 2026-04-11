@@ -107,6 +107,21 @@ groups.post('/:groupId/join', async (c) => {
   return c.json({ id: groupId })
 })
 
+/** グループ名を変更 */
+groups.patch('/:groupId/name', async (c) => {
+  const { groupId } = c.req.param()
+  const user = c.get('user')
+  const name = c.req.query('name') ?? ''
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
+  if (!name.trim()) return c.json({ error: 'name is required' }, 400)
+  if (name.length > 100) return c.json({ error: 'name must be 100 characters or less' }, 400)
+
+  const { error } = await db.from('groups').update({ name: name.trim() }).eq('id', groupId)
+  if (error) return c.json({ error: 'DB error' }, 500)
+  return c.json({ ok: true })
+})
+
 /** グループを削除（作成者のみ・全データ連鎖削除） */
 groups.delete('/:groupId', async (c) => {
   const { groupId } = c.req.param()

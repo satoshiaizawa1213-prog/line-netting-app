@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getMyGroups, ensureGroup, deleteGroup } from '@/lib/api'
+import { getMyGroups, ensureGroup, deleteGroup, renameGroup } from '@/lib/api'
 
 interface Props {
   currentGroupId: string
@@ -18,6 +18,9 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
   const [copied, setCopied] = useState(false)
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [renameTargetId, setRenameTargetId] = useState<string | null>(null)
+  const [renameInput, setRenameInput] = useState('')
+  const [renaming, setRenaming] = useState(false)
 
   const { data: groups = [], isLoading } = useQuery({
     queryKey: ['my-groups'],
@@ -65,6 +68,28 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
     sessionStorage.setItem('groupId', created.id)
     qc.clear()
     onSwitch(created.id)
+  }
+
+  function startRename(g: { id: string; name: string | null }) {
+    setRenameTargetId(g.id)
+    setRenameInput(g.name ?? '')
+    setDeleteTargetId(null)
+  }
+
+  async function handleRename(groupId: string) {
+    const name = renameInput.trim()
+    if (!name) return
+    setRenaming(true)
+    try {
+      await renameGroup(groupId, name)
+      setRenameTargetId(null)
+      qc.invalidateQueries({ queryKey: ['my-groups'] })
+      qc.invalidateQueries({ queryKey: ['group', groupId] })
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '変更に失敗しました')
+    } finally {
+      setRenaming(false)
+    }
   }
 
   async function handleDelete(groupId: string) {
@@ -128,6 +153,7 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
             {!isLoading && groups.map((g) => {
               const isCurrent = g.id === currentGroupId
               const isDeleteTarget = deleteTargetId === g.id
+              const isRenaming = renameTargetId === g.id
               return (
                 <div key={g.id} style={{ borderBottom: '1px solid var(--color-border)' }}>
                   <div
@@ -169,19 +195,57 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
                         </span>
                       )}
                     </div>
-                    {g.is_creator && (
+                    <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                       <button
-                        onClick={(e) => { e.stopPropagation(); setDeleteTargetId(isDeleteTarget ? null : g.id) }}
+                        onClick={(e) => { e.stopPropagation(); isRenaming ? setRenameTargetId(null) : startRename(g); setDeleteTargetId(null) }}
                         style={{
                           width: 'auto', padding: '4px 8px', fontSize: '0.75rem',
                           background: 'none', border: '1px solid var(--color-border)',
-                          borderRadius: 6, color: 'var(--color-text-sub)', cursor: 'pointer', flexShrink: 0,
+                          borderRadius: 6, color: 'var(--color-text-sub)', cursor: 'pointer',
                         }}
                       >
-                        {isDeleteTarget ? '✕' : '削除'}
+                        {isRenaming ? '✕' : '編集'}
                       </button>
-                    )}
+                      {g.is_creator && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteTargetId(isDeleteTarget ? null : g.id); setRenameTargetId(null) }}
+                          style={{
+                            width: 'auto', padding: '4px 8px', fontSize: '0.75rem',
+                            background: 'none', border: '1px solid var(--color-border)',
+                            borderRadius: 6, color: 'var(--color-text-sub)', cursor: 'pointer',
+                          }}
+                        >
+                          {isDeleteTarget ? '✕' : '削除'}
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  {isRenaming && (
+                    <div style={{ padding: '0 20px 14px', display: 'flex', gap: 8, alignItems: 'center' }}>
+                      <input
+                        type="text"
+                        value={renameInput}
+                        onChange={(e) => setRenameInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRename(g.id)}
+                        placeholder="グループ名"
+                        autoFocus
+                        style={{
+                          flex: 1, padding: '8px 12px', fontSize: '0.9rem',
+                          border: '1.5px solid var(--color-primary)', borderRadius: 8,
+                          outline: 'none', fontFamily: 'inherit', color: 'var(--color-text)',
+                          background: 'var(--color-bg)',
+                        }}
+                      />
+                      <button
+                        onClick={() => handleRename(g.id)}
+                        disabled={renaming || !renameInput.trim()}
+                        className="btn-primary"
+                        style={{ width: 'auto', padding: '8px 16px', fontSize: '0.85rem' }}
+                      >
+                        {renaming ? '…' : '保存'}
+                      </button>
+                    </div>
+                  )}
                   {isDeleteTarget && (
                     <div style={{ padding: '0 20px 14px', display: 'flex', gap: 8, alignItems: 'center' }}>
                       <span style={{ fontSize: '0.8rem', color: 'var(--color-danger)', flex: 1 }}>
