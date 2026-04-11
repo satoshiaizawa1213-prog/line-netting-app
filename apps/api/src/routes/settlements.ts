@@ -7,6 +7,18 @@ import { pushLineMessages } from '../lib/line-notify'
 const settlements = new Hono()
 settlements.use('*', authMiddleware)
 
+/** グループのメンバーシップを確認するヘルパー */
+async function assertMember(groupId: string, userId: string): Promise<boolean> {
+  const { data } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .maybeSingle()
+  return !!data
+}
+
 // ─── 精算実行ロジック（提案承認時・直接実行時で共有） ───────────
 async function executeSettlement(
   group_id: string,
@@ -278,9 +290,10 @@ settlements.post('/proposals/:proposalId/cancel', async (c) => {
   const user = c.get('user')
 
   const { data: proposal } = await db
-    .from('settlement_proposals').select('proposed_by, status').eq('id', proposalId).maybeSingle()
+    .from('settlement_proposals').select('group_id, proposed_by, status').eq('id', proposalId).maybeSingle()
   if (!proposal) return c.json({ error: 'Proposal not found' }, 404)
   if (proposal.status !== 'pending') return c.json({ error: 'Proposal is no longer pending' }, 400)
+  if (!(await assertMember(proposal.group_id, user.id))) return c.json({ error: 'Forbidden' }, 403)
   if (proposal.proposed_by !== user.id) return c.json({ error: 'Only proposer can cancel' }, 403)
 
   await db.from('settlement_proposals').update({ status: 'cancelled' }).eq('id', proposalId)
@@ -290,6 +303,9 @@ settlements.post('/proposals/:proposalId/cancel', async (c) => {
 // ─── 精算履歴一覧 ────────────────────────────────────────────
 settlements.get('/groups/:groupId', async (c) => {
   const { groupId } = c.req.param()
+  const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
 
   const { data: settlementRows, error: sErr } = await db
     .from('settlements')
@@ -361,6 +377,8 @@ settlements.get('/groups/:groupId/my-tasks', async (c) => {
   const { groupId } = c.req.param()
   const user = c.get('user')
 
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
+
   const { data: settlementRows, error: sErr } = await db
     .from('settlements')
     .select('id, created_at, method')
@@ -418,6 +436,8 @@ settlements.patch('/results/:resultId/paid', async (c) => {
 settlements.get('/groups/:groupId/my-receive-tasks', async (c) => {
   const { groupId } = c.req.param()
   const user = c.get('user')
+
+  if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
 
   const { data: settlementRows, error: sErr } = await db
     .from('settlements')

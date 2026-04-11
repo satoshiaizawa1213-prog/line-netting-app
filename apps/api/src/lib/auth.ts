@@ -71,6 +71,8 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
     pictureUrl?: string
   }
 
+  if (!profile.userId || !profile.displayName) return c.json({ error: 'Invalid LINE profile' }, 401)
+
   // DB に upsert（8秒タイムアウト）
   let data: AuthUser | null = null
   let dbError: unknown = null

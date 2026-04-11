@@ -217,7 +217,7 @@ groups.patch('/:groupId/members/:userId/weight', async (c) => {
   const weight = Number(c.req.query('weight'))
 
   if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
-  if (weight <= 0 || weight > 100) return c.json({ error: 'Weight must be between 0 and 100' }, 400)
+  if (!Number.isFinite(weight) || weight <= 0 || weight > 100) return c.json({ error: 'Weight must be between 0 and 100' }, 400)
 
   const { error } = await db
     .from('group_members')
