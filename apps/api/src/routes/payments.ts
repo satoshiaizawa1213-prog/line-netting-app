@@ -104,9 +104,11 @@ payments.post('/', async (c) => {
       .select('line_user_id')
       .in('id', otherIds)
     const liffUrl = process.env.LIFF_URL ?? ''
+    const { data: grp } = await db.from('groups').select('join_token').eq('id', group_id).maybeSingle()
+    const groupLink = liffUrl && grp ? `${liffUrl}?gid=${group_id}&token=${grp.join_token}` : liffUrl
     await pushLineMessages(
       recipients ?? [],
-      `💸 ${user.display_name}さんが支払いを報告しました。\n\n${description}：¥${amount.toLocaleString()}\n\n承認をお願いします。${liffUrl ? '\n' + liffUrl : ''}`
+      `💸 ${user.display_name}さんが支払いを報告しました。\n\n${description}：¥${amount.toLocaleString()}\n\n承認をお願いします。${groupLink ? '\n' + groupLink : ''}`
     )
   }
 

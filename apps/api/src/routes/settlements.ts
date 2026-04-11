@@ -198,9 +198,11 @@ settlements.post('/proposals', async (c) => {
   if (otherIds.length > 0) {
     const { data: recipients } = await db.from('users').select('line_user_id').in('id', otherIds)
     const liffUrl = process.env.LIFF_URL ?? ''
+    const { data: grp } = await db.from('groups').select('join_token').eq('id', group_id).maybeSingle()
+    const groupLink = liffUrl && grp ? `${liffUrl}?gid=${group_id}&token=${grp.join_token}` : liffUrl
     await pushLineMessages(
       recipients ?? [],
-      `💰 ${user.display_name}さんが精算を提案しました。\n全員の承認が揃うと精算が実行されます。\n${liffUrl}`
+      `💰 ${user.display_name}さんが精算を提案しました。\n全員の承認が揃うと精算が実行されます。\n${groupLink}`
     )
   }
 
@@ -277,7 +279,11 @@ settlements.post('/proposals/:proposalId/approve', async (c) => {
   }
 
   const liffUrl = process.env.LIFF_URL ?? ''
-  if (liffUrl) notifyText += `\n\n${liffUrl}`
+  if (liffUrl) {
+    const { data: grp } = await db.from('groups').select('join_token').eq('id', proposal.group_id).maybeSingle()
+    const groupLink = grp ? `${liffUrl}?gid=${proposal.group_id}&token=${grp.join_token}` : liffUrl
+    notifyText += `\n\n${groupLink}`
+  }
 
   await pushLineMessages(recipients ?? [], notifyText)
 

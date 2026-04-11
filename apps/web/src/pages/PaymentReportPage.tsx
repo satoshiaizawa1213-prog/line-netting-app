@@ -81,7 +81,9 @@ export default function PaymentReportPage() {
 
   function buildShareText() {
     if (!submitted) return ''
-    const liffUrl = `https://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
+    const liffId = import.meta.env.VITE_LIFF_ID as string
+    const joinToken = localStorage.getItem('joinToken') ?? ''
+    const liffUrl = `https://liff.line.me/${liffId}?gid=${groupId}&token=${joinToken}`
     return `💸 支払いを報告しました\n\n${submitted.description}：¥${submitted.amount.toLocaleString()}\n\n承認をお願いします 👇\n${liffUrl}`
   }
 

@@ -29,7 +29,8 @@ export default function SettlementPage() {
     onSuccess: () => setProposed(true),
   })
 
-  const shareText = `🤝 精算が提案されました。\n\nアプリを開いて承認してください 👇\nhttps://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}`
+  const joinToken = localStorage.getItem('joinToken') ?? ''
+  const shareText = `🤝 精算が提案されました。\n\nアプリを開いて承認してください 👇\nhttps://liff.line.me/${import.meta.env.VITE_LIFF_ID as string}?gid=${groupId}&token=${joinToken}`
 
   async function handleShare() {
     setShareError(null)
