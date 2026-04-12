@@ -8,6 +8,27 @@ import type { MyPaymentTask, MyReceiveTask } from '@/types'
 
 type Tab = 'pay' | 'receive'
 
+/** タスクを人ごとにまとめる */
+function groupPayByUser(tasks: MyPaymentTask[]) {
+  const map = new Map<string, { user: MyPaymentTask['to_user']; tasks: MyPaymentTask[] }>()
+  for (const t of tasks) {
+    const key = t.to_user?.id ?? 'unknown'
+    if (!map.has(key)) map.set(key, { user: t.to_user, tasks: [] })
+    map.get(key)!.tasks.push(t)
+  }
+  return [...map.values()]
+}
+
+function groupReceiveByUser(tasks: MyReceiveTask[]) {
+  const map = new Map<string, { user: MyReceiveTask['from_user']; tasks: MyReceiveTask[] }>()
+  for (const t of tasks) {
+    const key = t.from_user?.id ?? 'unknown'
+    if (!map.has(key)) map.set(key, { user: t.from_user, tasks: [] })
+    map.get(key)!.tasks.push(t)
+  }
+  return [...map.values()]
+}
+
 export default function MyPaymentsPage() {
   const navigate  = useNavigate()
   const qc        = useQueryClient()
@@ -75,15 +96,20 @@ export default function MyPaymentsPage() {
       </div>
 
       {isLoading && (
-        <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[1, 2].map((i) => (
-            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16 }}>
-              <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }} />
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div className="skeleton" style={{ width: '60%', height: 14, borderRadius: 6 }} />
-                <div className="skeleton" style={{ width: '40%', height: 12, borderRadius: 6 }} />
+            <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div className="skeleton" style={{ width: '50%', height: 14, borderRadius: 6 }} />
+                  <div className="skeleton" style={{ width: '30%', height: 20, borderRadius: 6 }} />
+                </div>
               </div>
-              <div className="skeleton" style={{ width: 70, height: 28, borderRadius: 8 }} />
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="skeleton" style={{ width: '80%', height: 12, borderRadius: 6 }} />
+                <div className="skeleton" style={{ width: '60%', height: 12, borderRadius: 6 }} />
+              </div>
             </div>
           ))}
         </div>
@@ -101,22 +127,32 @@ export default function MyPaymentsPage() {
           )}
           {pendingPay.length > 0 && (
             <section>
-              <div className="section-title">未振込 ({pendingPay.length})</div>
-              <div className="card" style={{ padding: '4px 16px' }}>
-                {pendingPay.map((t, i) => (
-                  <PayTaskCard key={t.id} task={t} onToggle={(paid) => payMutation.mutate({ id: t.id, paid })} isPending={payMutation.isPending} isLast={i === pendingPay.length - 1} />
-                ))}
-              </div>
+              <div className="section-title">未振込</div>
+              {groupPayByUser(pendingPay).map((group) => (
+                <PayGroupCard
+                  key={group.user?.id ?? 'unknown'}
+                  user={group.user}
+                  tasks={group.tasks}
+                  onToggle={(id, paid) => payMutation.mutate({ id, paid })}
+                  isPending={payMutation.isPending}
+                  done={false}
+                />
+              ))}
             </section>
           )}
           {completedPay.length > 0 && (
             <section>
-              <div className="section-title">振込み済み ({completedPay.length})</div>
-              <div className="card" style={{ padding: '4px 16px', opacity: 0.75 }}>
-                {completedPay.map((t, i) => (
-                  <PayTaskCard key={t.id} task={t} onToggle={(paid) => payMutation.mutate({ id: t.id, paid })} isPending={payMutation.isPending} isLast={i === completedPay.length - 1} />
-                ))}
-              </div>
+              <div className="section-title">振込み済み</div>
+              {groupPayByUser(completedPay).map((group) => (
+                <PayGroupCard
+                  key={group.user?.id ?? 'unknown'}
+                  user={group.user}
+                  tasks={group.tasks}
+                  onToggle={(id, paid) => payMutation.mutate({ id, paid })}
+                  isPending={payMutation.isPending}
+                  done={true}
+                />
+              ))}
             </section>
           )}
         </>
@@ -134,22 +170,32 @@ export default function MyPaymentsPage() {
           )}
           {pendingRcv.length > 0 && (
             <section>
-              <div className="section-title">未受取 ({pendingRcv.length})</div>
-              <div className="card" style={{ padding: '4px 16px' }}>
-                {pendingRcv.map((t, i) => (
-                  <ReceiveTaskCard key={t.id} task={t} onToggle={(received) => receiveMutation.mutate({ id: t.id, received })} isPending={receiveMutation.isPending} isLast={i === pendingRcv.length - 1} />
-                ))}
-              </div>
+              <div className="section-title">未受取</div>
+              {groupReceiveByUser(pendingRcv).map((group) => (
+                <ReceiveGroupCard
+                  key={group.user?.id ?? 'unknown'}
+                  user={group.user}
+                  tasks={group.tasks}
+                  onToggle={(id, received) => receiveMutation.mutate({ id, received })}
+                  isPending={receiveMutation.isPending}
+                  done={false}
+                />
+              ))}
             </section>
           )}
           {completedRcv.length > 0 && (
             <section>
-              <div className="section-title">受取済み ({completedRcv.length})</div>
-              <div className="card" style={{ padding: '4px 16px', opacity: 0.75 }}>
-                {completedRcv.map((t, i) => (
-                  <ReceiveTaskCard key={t.id} task={t} onToggle={(received) => receiveMutation.mutate({ id: t.id, received })} isPending={receiveMutation.isPending} isLast={i === completedRcv.length - 1} />
-                ))}
-              </div>
+              <div className="section-title">受取済み</div>
+              {groupReceiveByUser(completedRcv).map((group) => (
+                <ReceiveGroupCard
+                  key={group.user?.id ?? 'unknown'}
+                  user={group.user}
+                  tasks={group.tasks}
+                  onToggle={(id, received) => receiveMutation.mutate({ id, received })}
+                  isPending={receiveMutation.isPending}
+                  done={true}
+                />
+              ))}
             </section>
           )}
         </>
@@ -158,80 +204,192 @@ export default function MyPaymentsPage() {
   )
 }
 
-function PayTaskCard({
-  task, onToggle, isPending, isLast,
+/* ───── 人ごとにまとめた振込みカード ───── */
+
+function PayGroupCard({
+  user, tasks, onToggle, isPending, done,
 }: {
-  task: MyPaymentTask
-  onToggle: (paid: boolean) => void
+  user: MyPaymentTask['to_user']
+  tasks: MyPaymentTask[]
+  onToggle: (id: string, paid: boolean) => void
   isPending: boolean
-  isLast?: boolean
+  done: boolean
 }) {
-  const date = task.settlement
-    ? new Date(task.settlement.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
-    : ''
+  const total = tasks.reduce((s, t) => s + t.amount, 0)
+  const allDone = tasks.every((t) => t.paid)
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: isLast ? 'none' : '1px solid var(--color-border)' }}>
-      <button
-        onClick={() => onToggle(!task.paid)}
-        disabled={isPending}
-        style={{
-          width: 28, height: 28, borderRadius: '50%', border: '2px solid',
-          borderColor: task.paid ? 'var(--color-primary)' : 'var(--color-border)',
-          background: task.paid ? 'var(--color-primary)' : 'transparent',
-          color: '#fff', fontSize: '0.9rem', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', padding: 0,
-        }}
-      >
-        {task.paid ? '✓' : ''}
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.93rem', textDecoration: task.paid ? 'line-through' : 'none', color: task.paid ? 'var(--color-text-sub)' : 'var(--color-text)' }}>
-          {task.to_user?.display_name ?? '不明'} に振り込む
+    <div className="card" style={{ marginBottom: 10, opacity: done ? 0.7 : 1 }}>
+      {/* ヘッダー: アバター + 名前 + 合計金額 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: tasks.length > 1 ? 12 : 0 }}>
+        {user?.picture_url ? (
+          <img src={user.picture_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #fee2e2, #fecaca)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💸</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)' }}>
+            {user?.display_name ?? '不明'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', marginTop: 1 }}>
+            {tasks.length > 1 ? `${tasks.length}件の振込み` : '振込み'}
+          </div>
         </div>
-        <div style={{ fontSize: '0.77rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{date}</div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: '1.2rem', color: allDone ? 'var(--color-text-muted)' : 'var(--color-danger)', letterSpacing: '-0.02em' }}>
+            ¥{total.toLocaleString()}
+          </div>
+        </div>
       </div>
-      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: task.paid ? 'var(--color-text-muted)' : 'var(--color-danger)', flexShrink: 0 }}>
-        ¥{task.amount.toLocaleString()}
-      </div>
+
+      {/* 明細（複数ある場合） */}
+      {tasks.length > 1 && (
+        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+          {tasks.map((t, i) => {
+            const date = t.settlement
+              ? new Date(t.settlement.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+              : ''
+            return (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < tasks.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                <CheckButton checked={t.paid} onToggle={() => onToggle(t.id, !t.paid)} disabled={isPending} color="var(--color-danger)" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: '0.83rem', color: t.paid ? 'var(--color-text-muted)' : 'var(--color-text)', textDecoration: t.paid ? 'line-through' : 'none' }}>
+                    精算 {date}
+                  </span>
+                </div>
+                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: t.paid ? 'var(--color-text-muted)' : 'var(--color-text)', flexShrink: 0 }}>
+                  ¥{t.amount.toLocaleString()}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 1件だけの場合はチェックボタンを直接表示 */}
+      {tasks.length === 1 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <button
+            onClick={() => onToggle(tasks[0].id, !tasks[0].paid)}
+            disabled={isPending}
+            style={{
+              padding: '6px 16px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: tasks[0].paid ? 'var(--color-bg)' : 'var(--color-danger)',
+              color: tasks[0].paid ? 'var(--color-text-sub)' : '#fff',
+              transition: 'all 0.15s',
+            }}
+          >
+            {tasks[0].paid ? '✓ 振込み済み' : '振込み完了にする'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
 
-function ReceiveTaskCard({
-  task, onToggle, isPending, isLast,
+/* ───── 人ごとにまとめた受取りカード ───── */
+
+function ReceiveGroupCard({
+  user, tasks, onToggle, isPending, done,
 }: {
-  task: MyReceiveTask
-  onToggle: (received: boolean) => void
+  user: MyReceiveTask['from_user']
+  tasks: MyReceiveTask[]
+  onToggle: (id: string, received: boolean) => void
   isPending: boolean
-  isLast?: boolean
+  done: boolean
 }) {
-  const date = task.settlement
-    ? new Date(task.settlement.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
-    : ''
+  const total = tasks.reduce((s, t) => s + t.amount, 0)
+  const allDone = tasks.every((t) => t.received)
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0', borderBottom: isLast ? 'none' : '1px solid var(--color-border)' }}>
-      <button
-        onClick={() => onToggle(!task.received)}
-        disabled={isPending}
-        style={{
-          width: 28, height: 28, borderRadius: '50%', border: '2px solid',
-          borderColor: task.received ? 'var(--color-primary)' : '#f59e0b',
-          background: task.received ? 'var(--color-primary)' : 'transparent',
-          color: task.received ? '#fff' : '#f59e0b', fontSize: '0.9rem', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', padding: 0,
-        }}
-      >
-        {task.received ? '✓' : '¥'}
-      </button>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontWeight: 600, fontSize: '0.93rem', textDecoration: task.received ? 'line-through' : 'none', color: task.received ? 'var(--color-text-sub)' : 'var(--color-text)' }}>
-          {task.from_user?.display_name ?? '不明'} から受取る
+    <div className="card" style={{ marginBottom: 10, opacity: done ? 0.7 : 1 }}>
+      {/* ヘッダー */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: tasks.length > 1 ? 12 : 0 }}>
+        {user?.picture_url ? (
+          <img src={user.picture_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+        ) : (
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #e8f9ef, #c7f3da)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💰</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)' }}>
+            {user?.display_name ?? '不明'}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-sub)', marginTop: 1 }}>
+            {tasks.length > 1 ? `${tasks.length}件の受取り` : '受取り'}
+          </div>
         </div>
-        <div style={{ fontSize: '0.77rem', color: 'var(--color-text-muted)', marginTop: 2 }}>{date}</div>
+        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+          <div style={{ fontWeight: 800, fontSize: '1.2rem', color: allDone ? 'var(--color-text-muted)' : 'var(--color-primary)', letterSpacing: '-0.02em' }}>
+            ¥{total.toLocaleString()}
+          </div>
+        </div>
       </div>
-      <div style={{ fontWeight: 700, fontSize: '1.05rem', color: task.received ? 'var(--color-text-muted)' : 'var(--color-primary)', flexShrink: 0 }}>
-        ¥{task.amount.toLocaleString()}
-      </div>
+
+      {/* 明細 */}
+      {tasks.length > 1 && (
+        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: 8 }}>
+          {tasks.map((t, i) => {
+            const date = t.settlement
+              ? new Date(t.settlement.created_at).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })
+              : ''
+            return (
+              <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < tasks.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
+                <CheckButton checked={t.received} onToggle={() => onToggle(t.id, !t.received)} disabled={isPending} color="var(--color-primary)" />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: '0.83rem', color: t.received ? 'var(--color-text-muted)' : 'var(--color-text)', textDecoration: t.received ? 'line-through' : 'none' }}>
+                    精算 {date}
+                  </span>
+                </div>
+                <span style={{ fontWeight: 600, fontSize: '0.9rem', color: t.received ? 'var(--color-text-muted)' : 'var(--color-text)', flexShrink: 0 }}>
+                  ¥{t.amount.toLocaleString()}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {tasks.length === 1 && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+          <button
+            onClick={() => onToggle(tasks[0].id, !tasks[0].received)}
+            disabled={isPending}
+            style={{
+              padding: '6px 16px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 999, border: 'none', cursor: 'pointer',
+              background: tasks[0].received ? 'var(--color-bg)' : 'var(--color-primary)',
+              color: tasks[0].received ? 'var(--color-text-sub)' : '#fff',
+              transition: 'all 0.15s',
+            }}
+          >
+            {tasks[0].received ? '✓ 受取済み' : '受取り完了にする'}
+          </button>
+        </div>
+      )}
     </div>
+  )
+}
+
+/* ───── 共通チェックボタン ───── */
+
+function CheckButton({ checked, onToggle, disabled, color }: {
+  checked: boolean
+  onToggle: () => void
+  disabled: boolean
+  color: string
+}) {
+  return (
+    <button
+      onClick={onToggle}
+      disabled={disabled}
+      style={{
+        width: 22, height: 22, borderRadius: '50%', border: '2px solid',
+        borderColor: checked ? 'var(--color-primary)' : color,
+        background: checked ? 'var(--color-primary)' : 'transparent',
+        color: '#fff', fontSize: '0.7rem', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexShrink: 0, cursor: 'pointer', transition: 'all 0.15s', padding: 0,
+      }}
+    >
+      {checked ? '✓' : ''}
+    </button>
   )
 }
