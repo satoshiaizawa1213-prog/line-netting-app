@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>プライバシーポリシー — Netting App</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      background: #f8fafc;
+      color: #1a1a2e;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+    .header {
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #064e3b 100%);
+      padding: 40px 20px 32px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .header p {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.45);
+      margin-top: 6px;
+    }
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-top: 36px;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #06C755;
+      display: inline-block;
+    }
+    h3 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #334155;
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    p, li {
+      font-size: 0.88rem;
+      color: #475569;
+      line-height: 1.8;
+    }
+    ul, ol {
+      padding-left: 1.5em;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    li { margin-bottom: 4px; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.85rem;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    th {
+      background: #f0fdf4;
+      font-weight: 700;
+      color: #15803d;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+    td { color: #475569; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 40px;
+      padding: 10px 20px;
+      background: #fff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      color: #64748b;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: border-color 0.15s;
+    }
+    .back-link:hover { border-color: #06C755; color: #06C755; }
+    .note {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 12px;
+      font-size: 0.83rem;
+      color: #166534;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>プライバシーポリシー</h1>
+  <p>Netting App（割り勘精算アプリ）</p>
+</div>
+
+<div class="container">
+
+  <p style="margin-top: 4px;">
+    Netting App（以下「本アプリ」）は、ユーザーのプライバシーを尊重し、個人情報の保護に努めます。本プライバシーポリシーは、本アプリが取得・利用する情報の取扱いについて定めるものです。
+  </p>
+
+  <h2>1. サービス提供者</h2>
+  <table>
+    <tr>
+      <th>サービス名</th>
+      <td>Netting App</td>
+    </tr>
+    <tr>
+      <th>提供者</th>
+      <td>Netting App 運営者</td>
+    </tr>
+    <tr>
+      <th>お問い合わせ</th>
+      <td>アプリ内のお問い合わせ機能、またはLINE公式アカウントよりご連絡ください</td>
+    </tr>
+  </table>
+
+  <h2>2. 取得する情報</h2>
+  <p>本アプリは、LINE プラットフォーム（LIFF SDK）を通じて、以下の情報を取得します。</p>
+  <table>
+    <tr>
+      <th>情報の種類</th>
+      <th>取得方法</th>
+      <th>利用目的</th>
+    </tr>
+    <tr>
+      <td>LINE ユーザーID</td>
+      <td>LIFF SDK（LINE ログイン）</td>
+      <td>ユーザーの識別・認証</td>
+    </tr>
+    <tr>
+      <td>表示名</td>
+      <td>LINE プロフィール API</td>
+      <td>アプリ内でのメンバー表示</td>
+    </tr>
+    <tr>
+      <td>プロフィール画像 URL</td>
+      <td>LINE プロフィール API</td>
+      <td>アプリ内でのアバター表示</td>
+    </tr>
+  </table>
+
+  <div class="note">
+    <strong>取得しない情報:</strong> 本アプリは、LINE のトーク内容、友だちリスト、電話番号、メールアドレス、位置情報などは一切取得しません。
+  </div>
+
+  <h2>3. 情報の利用目的</h2>
+  <p>取得した情報は、以下の目的にのみ利用します。</p>
+  <ol>
+    <li><strong>ユーザー認証:</strong> LINE アカウントによるログイン・本人確認</li>
+    <li><strong>サービス提供:</strong> グループ内の支払い記録、精算計算、残高表示、振込みタスク管理</li>
+    <li><strong>通知:</strong> 支払い報告・承認依頼・差戻し通知・精算完了通知の LINE プッシュメッセージ送信</li>
+    <li><strong>表示:</strong> アプリ内でのメンバー名・アバターの表示</li>
+  </ol>
+
+  <h2>4. 情報の保存</h2>
+  <p>取得した情報は、以下のとおり保存します。</p>
+  <ul>
+    <li><strong>保存先:</strong> Supabase（PostgreSQL）上のデータベース</li>
+    <li><strong>保存期間:</strong> アカウント削除が行われるまで</li>
+    <li><strong>暗号化:</strong> 通信は TLS（HTTPS）で暗号化されます</li>
+  </ul>
+
+  <h2>5. 第三者への提供</h2>
+  <p>本アプリは、取得した個人情報を第三者に提供しません。ただし、以下の場合を除きます。</p>
+  <ul>
+    <li>法令に基づく場合</li>
+    <li>人の生命、身体または財産の保護のために必要がある場合であって、本人の同意を得ることが困難であるとき</li>
+  </ul>
+
+  <h3>利用する外部サービス</h3>
+  <table>
+    <tr>
+      <th>サービス</th>
+      <th>提供元</th>
+      <th>用途</th>
+    </tr>
+    <tr>
+      <td>LINE Messaging API</td>
+      <td>LINEヤフー株式会社</td>
+      <td>プッシュ通知の送信</td>
+    </tr>
+    <tr>
+      <td>Supabase</td>
+      <td>Supabase Inc.</td>
+      <td>データベースホスティング</td>
+    </tr>
+    <tr>
+      <td>Vercel</td>
+      <td>Vercel Inc.</td>
+      <td>アプリケーションホスティング</td>
+    </tr>
+  </table>
+
+  <h2>6. グループ内での情報共有</h2>
+  <p>本アプリの性質上、同一グループに参加しているメンバー間で以下の情報が共有されます。</p>
+  <ul>
+    <li>表示名・プロフィール画像</li>
+    <li>支払い報告の内容（金額、説明、立替者、内訳）</li>
+    <li>精算結果（振込み先・金額）</li>
+    <li>承認・差戻しの操作履歴</li>
+  </ul>
+  <p>これらの情報は、グループ外のユーザーには公開されません。</p>
+
+  <h2>7. アカウント削除（退会）</h2>
+  <p>ユーザーはいつでもアカウントを削除できます。削除時には以下の処理が行われます。</p>
+  <ul>
+    <li>表示名が「退会済みユーザー」に変更されます</li>
+    <li>プロフィール画像が削除されます</li>
+    <li>すべてのグループメンバーシップが無効化されます</li>
+    <li>LINE プラットフォームの認可権限が取り消されます</li>
+  </ul>
+  <div class="note">
+    精算履歴など、他のメンバーに関わるデータは、サービスの整合性を保つため匿名化された状態で保持される場合があります。
+  </div>
+
+  <h2>8. Cookie・ローカルストレージ</h2>
+  <p>本アプリは、以下の目的でブラウザのローカルストレージおよびセッションストレージを使用します。</p>
+  <ul>
+    <li><strong>グループ ID:</strong> 最後に使用したグループの記憶（再訪時の利便性向上）</li>
+    <li><strong>ユーザー ID:</strong> セッション中の認証情報の保持</li>
+  </ul>
+  <p>トラッキング目的の Cookie やアクセス解析ツールは使用していません。</p>
+
+  <h2>9. 未成年者の利用</h2>
+  <p>本アプリは、未成年者の個人情報を意図的に収集しません。未成年者が本アプリを利用する場合は、保護者の同意のもとご利用ください。</p>
+
+  <h2>10. プライバシーポリシーの変更</h2>
+  <p>本ポリシーの内容は、法令の変更やサービス内容の変更に応じて、事前の通知なく改定されることがあります。改定後のポリシーは、本ページに掲載した時点から効力を生じます。</p>
+
+  <h2>11. お問い合わせ</h2>
+  <p>本ポリシーに関するお問い合わせは、アプリ内の機能またはLINE公式アカウントよりご連絡ください。</p>
+
+  <p style="margin-top: 36px; font-size: 0.82rem; color: #94a3b8; text-align: right;">
+    制定日: 2025年4月12日<br />
+    最終更新日: 2026年4月12日
+  </p>
+
+  <a href="/lp.html" class="back-link">← トップページに戻る</a>
+</div>
+
+</body>
+</html>
