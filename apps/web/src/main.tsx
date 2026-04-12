@@ -16,11 +16,9 @@ const root = document.getElementById('root')!
 function showLoading() {
   root.innerHTML = `
     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;gap:14px;background:#F3F4F6;">
-      <div style="width:40px;height:40px;border:3px solid #E5E7EB;border-top-color:#06C755;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
-      <p style="color:#9CA3AF;font-size:0.85rem;font-weight:500;letter-spacing:0.03em;">読み込み中...</p>
+      <img src="/line_spinner_light.svg" width="30" height="30" alt="読み込み中" />
     </div>
     <style>
-      @keyframes spin{to{transform:rotate(360deg)}}
       body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;margin:0;max-width:480px;margin:0 auto;}
     </style>
   `
