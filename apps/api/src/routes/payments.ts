@@ -158,6 +158,126 @@ payments.post('/:paymentId/approve', async (c) => {
 
   if (updateError) return c.json({ error: 'Failed to update payment status' }, 500)
 
+  // 却下時は報告者にLINE通知を送信
+  if (action === 'rejected') {
+    const { data: reporter } = await db
+      .from('users')
+      .select('line_user_id')
+      .eq('id', payment.reporter_id)
+      .single()
+    if (reporter) {
+      const liffUrl = process.env.LIFF_URL ?? ''
+      const { data: grp } = await db.from('groups').select('join_token').eq('id', payment.group_id).maybeSingle()
+      const groupLink = liffUrl && grp ? `${liffUrl}?gid=${payment.group_id}&token=${grp.join_token}` : liffUrl
+      const commentLine = comment ? `\n理由: ${comment}` : ''
+      await pushLineMessages(
+        [reporter],
+        `❌ ${user.display_name}さんが支払いを差戻しました。\n\n${payment.description}：¥${Number(payment.amount).toLocaleString()}${commentLine}\n\n修正して再申請してください。${groupLink ? '\n' + groupLink : ''}`
+      )
+    }
+  }
+
+  return c.json(updated)
+})
+
+/** 支払い報告を編集（報告者のみ・pending時のみ） */
+payments.patch('/:paymentId', async (c) => {
+  const user = c.get('user')
+  const { paymentId } = c.req.param()
+  const description = c.req.query('description') ?? undefined
+  const amountRaw   = c.req.query('amount') ?? undefined
+  const payer_id    = c.req.query('payer_id') ?? undefined
+  const note        = c.req.query('note')
+  const splitsRaw   = c.req.query('splits') ?? undefined
+
+  // 支払い報告を取得
+  const { data: payment, error: fetchError } = await db
+    .from('payments')
+    .select('*')
+    .eq('id', paymentId)
+    .single()
+
+  if (fetchError || !payment) return c.json({ error: 'Payment not found' }, 404)
+  if (payment.reporter_id !== user.id) return c.json({ error: 'Only reporter can edit' }, 403)
+  if (payment.status !== 'pending') return c.json({ error: 'Only pending payments can be edited' }, 400)
+
+  // 更新フィールドを構築
+  const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+
+  if (description !== undefined) {
+    if (description.length === 0) return c.json({ error: 'description is required' }, 400)
+    if (description.length > 100) return c.json({ error: 'description must be 100 characters or less' }, 400)
+    updates.description = description
+  }
+
+  let newAmount: number | undefined
+  if (amountRaw !== undefined) {
+    newAmount = Number(amountRaw)
+    if (!Number.isInteger(newAmount) || newAmount <= 0) return c.json({ error: 'amount must be a positive integer' }, 400)
+    if (newAmount > 1_000_000) return c.json({ error: 'amount must be 1,000,000 or less' }, 400)
+    updates.amount = newAmount
+  }
+
+  if (payer_id !== undefined) {
+    // グループメンバーシップ確認
+    const { data: memberRows } = await db
+      .from('group_members').select('user_id').eq('group_id', payment.group_id).eq('is_active', true)
+    const memberSet = new Set((memberRows ?? []).map((m: { user_id: string }) => m.user_id))
+    if (!memberSet.has(payer_id)) return c.json({ error: 'payer_id is not a group member' }, 400)
+    updates.payer_id = payer_id
+  }
+
+  if (note !== undefined) {
+    updates.note = note || null
+  }
+
+  // 支払い報告を更新
+  const { data: updated, error: updateError } = await db
+    .from('payments')
+    .update(updates)
+    .eq('id', paymentId)
+    .select()
+    .single()
+
+  if (updateError) return c.json({ error: 'Failed to update payment' }, 500)
+
+  // splits が指定されている場合は再作成
+  if (splitsRaw !== undefined) {
+    let splits: Array<{ user_id: string; amount: number }>
+    try {
+      splits = JSON.parse(splitsRaw)
+      if (!Array.isArray(splits)) throw new Error()
+    } catch {
+      return c.json({ error: 'Invalid splits JSON' }, 400)
+    }
+
+    const effectiveAmount = newAmount ?? payment.amount
+    for (const s of splits) {
+      if (!s.user_id || !Number.isInteger(s.amount) || s.amount <= 0) {
+        return c.json({ error: 'Invalid split: user_id and positive integer amount required' }, 400)
+      }
+    }
+    const splitsTotal = splits.reduce((s, sp) => s + sp.amount, 0)
+    if (splitsTotal !== effectiveAmount) {
+      return c.json({ error: 'splits total must equal amount' }, 400)
+    }
+
+    // メンバーシップ確認
+    const { data: memberRows } = await db
+      .from('group_members').select('user_id').eq('group_id', payment.group_id).eq('is_active', true)
+    const memberSet = new Set((memberRows ?? []).map((m: { user_id: string }) => m.user_id))
+    for (const s of splits) {
+      if (!memberSet.has(s.user_id)) return c.json({ error: `User ${s.user_id} is not a group member` }, 400)
+    }
+
+    // 既存splits削除 → 再挿入
+    await db.from('payment_splits').delete().eq('payment_id', paymentId)
+    const { error: splitError } = await db.from('payment_splits').insert(
+      splits.map((s) => ({ payment_id: paymentId, ...s }))
+    )
+    if (splitError) return c.json({ error: 'Failed to update splits' }, 500)
+  }
+
   return c.json(updated)
 })
 

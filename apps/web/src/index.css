@@ -431,3 +431,15 @@ button:disabled {
 .status-dot-pending  { background: #F97316; }
 .status-dot-approved { background: var(--color-primary); }
 .status-dot-rejected { background: var(--color-danger); }
+
+/* ============ SKELETON ============ */
+@keyframes skeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-border) 25%, #f0f0f0 50%, var(--color-border) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.5s ease-in-out infinite;
+}

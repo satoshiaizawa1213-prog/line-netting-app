@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getPayments, approvePayment, deletePayment } from '@/lib/api'
+import { SkeletonDetail } from '@/components/Skeleton'
 import type { Payment } from '@/types'
 
 export default function ApprovalPage() {
@@ -32,7 +33,15 @@ export default function ApprovalPage() {
   })
 
   if (isLoading) {
-    return <div className="page"><p style={{ color: 'var(--color-text-sub)' }}>読み込み中...</p></div>
+    return (
+      <div className="page">
+        <div className="page-header">
+          <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)', fontWeight: 400 }}>←</button>
+          支払い報告の確認
+        </div>
+        <SkeletonDetail />
+      </div>
+    )
   }
   if (!payment) {
     return (
@@ -70,6 +79,20 @@ export default function ApprovalPage() {
         payerId: payment.payer_id,
         splits: payment.splits,
         oldPaymentId: payment.id,
+      },
+    })
+  }
+
+  function handleEdit() {
+    if (!payment) return
+    navigate('/payments/new', {
+      state: {
+        paymentId: payment.id,
+        description: payment.description,
+        amount: payment.amount,
+        payerId: payment.payer_id,
+        note: payment.note ?? '',
+        splits: payment.splits,
       },
     })
   }
@@ -182,9 +205,14 @@ export default function ApprovalPage() {
           )
         )}
         {isReporter && isPending && (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
-            自分の報告は承認できません。他のメンバーの承認を待ちましょう。
-          </p>
+          <>
+            <button className="btn-secondary" onClick={handleEdit}>
+              ✏️ この報告を編集する
+            </button>
+            <p style={{ textAlign: 'center', color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>
+              自分の報告は承認できません。他のメンバーの承認を待ちましょう。
+            </p>
+          </>
         )}
         {isReporter && isRejected && (
           confirmDelete ? (

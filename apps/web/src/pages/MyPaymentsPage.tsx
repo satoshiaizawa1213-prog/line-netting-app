@@ -75,7 +75,18 @@ export default function MyPaymentsPage() {
       </div>
 
       {isLoading && (
-        <p style={{ color: 'var(--color-text-sub)', textAlign: 'center', marginTop: 32 }}>読み込み中...</p>
+        <div style={{ marginTop: 32, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[1, 2].map((i) => (
+            <div key={i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16 }}>
+              <div className="skeleton" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div className="skeleton" style={{ width: '60%', height: 14, borderRadius: 6 }} />
+                <div className="skeleton" style={{ width: '40%', height: 12, borderRadius: 6 }} />
+              </div>
+              <div className="skeleton" style={{ width: 70, height: 28, borderRadius: 8 }} />
+            </div>
+          ))}
+        </div>
       )}
 
       {/* 支払いタブ */}

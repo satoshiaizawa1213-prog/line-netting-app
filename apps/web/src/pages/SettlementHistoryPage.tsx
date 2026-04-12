@@ -33,7 +33,17 @@ export default function SettlementHistoryPage() {
         精算履歴
       </div>
 
-      {isLoading && <p style={{ color: 'var(--color-text-sub)', textAlign: 'center' }}>読み込み中...</p>}
+      {isLoading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[1, 2].map((i) => (
+            <div key={i} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div className="skeleton" style={{ width: '45%', height: 12, borderRadius: 6 }} />
+              <div className="skeleton" style={{ width: '70%', height: 14, borderRadius: 6 }} />
+              <div className="skeleton" style={{ width: '55%', height: 12, borderRadius: 6 }} />
+            </div>
+          ))}
+        </div>
+      )}
 
       {!isLoading && settlements.length === 0 && (
         <div className="card empty-state">

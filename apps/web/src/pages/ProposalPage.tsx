@@ -53,7 +53,12 @@ export default function ProposalPage() {
           <button onClick={() => navigate(-1)} style={{ width: 'auto', padding: '4px 8px', background: 'none', color: 'var(--color-text)' }}>←</button>
           精算の承認
         </div>
-        <p style={{ color: 'var(--color-text-sub)', textAlign: 'center' }}>読み込み中...</p>
+        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="skeleton" style={{ width: '50%', height: 16, borderRadius: 6 }} />
+          <div className="skeleton" style={{ width: '100%', height: 6, borderRadius: 3 }} />
+          <div className="skeleton" style={{ width: '70%', height: 13, borderRadius: 6 }} />
+          <div className="skeleton" style={{ width: '100%', height: 40, borderRadius: 10, marginTop: 8 }} />
+        </div>
       </div>
     )
   }

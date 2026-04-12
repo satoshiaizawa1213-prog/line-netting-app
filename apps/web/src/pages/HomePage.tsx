@@ -5,6 +5,7 @@ import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePaymen
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import { GroupSwitcher } from '@/components/GroupSwitcher'
+import { SkeletonBalanceCard, SkeletonCard } from '@/components/Skeleton'
 import { AdBanner } from '@/components/AdBanner'
 import type { Payment, GroupBalance, SettlementProposal } from '@/types'
 
@@ -95,47 +96,45 @@ export default function HomePage() {
       )}
 
       {/* 残高カード */}
-      <div className="balance-card">
-        <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
-          精算前の合計金額
-        </div>
-        {balanceLoading ? (
-          <div style={{ height: 52, display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '1.5rem', fontWeight: 800 }}>---</div>
-        ) : (
-          <>
-            <div style={{
-              fontSize: '2.6rem',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
-              color: myBalance >= 0 ? '#4ade80' : '#f87171',
-            }}>
-              {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
-            </div>
-            <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
-              {myBalance > 0 ? '受取り予定' : myBalance < 0 ? '支払い予定' : pending.length > 0 ? '承認待ちあり' : '精算済み ✓'}
-            </div>
-          </>
-        )}
-
-        {/* 内訳サマリー */}
-        {!paymentsLoading && (pending.length > 0 || approved.length > 0) && (
-          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.1)', display: 'flex', gap: 16 }}>
-            {pending.length > 0 && (
-              <div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fbbf24' }}>{pending.length}</div>
-                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>承認待ち</div>
-              </div>
-            )}
-            {approved.length > 0 && (
-              <div>
-                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#4ade80' }}>{approved.length}</div>
-                <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>未精算</div>
-              </div>
-            )}
+      {balanceLoading ? (
+        <SkeletonBalanceCard />
+      ) : (
+        <div className="balance-card">
+          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>
+            精算前の合計金額
           </div>
-        )}
-      </div>
+          <div style={{
+            fontSize: '2.6rem',
+            fontWeight: 800,
+            letterSpacing: '-0.02em',
+            lineHeight: 1.1,
+            color: myBalance >= 0 ? '#4ade80' : '#f87171',
+          }}>
+            {myBalance >= 0 ? '+' : ''}¥{myBalance.toLocaleString()}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)', marginTop: 6, fontWeight: 500 }}>
+            {myBalance > 0 ? '受取り予定' : myBalance < 0 ? '支払い予定' : pending.length > 0 ? '承認待ちあり' : '精算済み ✓'}
+          </div>
+
+          {/* 内訳サマリー */}
+          {(pending.length > 0 || approved.length > 0) && (
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.1)', display: 'flex', gap: 16 }}>
+              {pending.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#fbbf24' }}>{pending.length}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>承認待ち</div>
+                </div>
+              )}
+              {approved.length > 0 && (
+                <div>
+                  <div style={{ fontSize: '1rem', fontWeight: 700, color: '#4ade80' }}>{approved.length}</div>
+                  <div style={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.45)', marginTop: 1 }}>未精算</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 承認待ちの精算提案バナー */}
       {proposals.map((proposal) => (
@@ -212,6 +211,14 @@ export default function HomePage() {
           <span>メンバー管理</span>
         </button>
       </div>
+
+      {/* ローディングスケルトン */}
+      {paymentsLoading && (
+        <section>
+          <div className="section-title">読み込み中...</div>
+          <SkeletonCard lines={3} />
+        </section>
+      )}
 
       {/* 承認が必要 */}
       {!paymentsLoading && myPending.length > 0 && (

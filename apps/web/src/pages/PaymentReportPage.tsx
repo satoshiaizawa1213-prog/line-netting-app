@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getGroupMembers, createPayment, deletePayment } from '@/lib/api'
+import { getGroupMembers, createPayment, deletePayment, updatePayment } from '@/lib/api'
 import { shareToLine } from '@/lib/liff'
+import { SkeletonForm } from '@/components/Skeleton'
 import type { User } from '@/types'
 
 type SplitMode = 'equal' | 'weighted' | 'custom'
@@ -15,6 +16,15 @@ type ResubmitState = {
   oldPaymentId?: string
 }
 
+type EditState = {
+  paymentId: string
+  description: string
+  amount: number
+  payerId: string
+  note?: string
+  splits: Array<{ user_id: string; amount: number }>
+}
+
 export default function PaymentReportPage() {
   const groupId  = sessionStorage.getItem('groupId') ?? ''
   const myUserId = sessionStorage.getItem('userId') ?? ''
@@ -23,27 +33,29 @@ export default function PaymentReportPage() {
   const qc = useQueryClient()
 
   const resubmit = location.state as ResubmitState | null
+  const editState = (location.state as EditState | null)?.paymentId ? location.state as EditState : null
+  const initState = editState ?? resubmit
 
   const { data: members = [], isLoading, isError, error } = useQuery<User[]>({
     queryKey: ['members', groupId],
     queryFn: () => getGroupMembers(groupId),
   })
 
-  const [description,    setDescription]    = useState(resubmit?.description ?? '')
-  const [note,           setNote]           = useState('')
-  const [amountStr,      setAmountStr]      = useState(resubmit ? String(resubmit.amount) : '')
-  const [payerId,        setPayerId]        = useState(resubmit?.payerId ?? myUserId)
+  const [description,    setDescription]    = useState(initState?.description ?? '')
+  const [note,           setNote]           = useState(editState?.note ?? '')
+  const [amountStr,      setAmountStr]      = useState(initState ? String(initState.amount) : '')
+  const [payerId,        setPayerId]        = useState(initState?.payerId ?? myUserId)
   const [selected,       setSelected]       = useState<Set<string>>(
-    resubmit ? new Set(resubmit.splits.map((s) => s.user_id)) : new Set()
+    initState ? new Set(initState.splits.map((s) => s.user_id)) : new Set()
   )
-  const [splitMode,      setSplitMode]      = useState<SplitMode>(resubmit ? 'custom' : 'equal')
+  const [splitMode,      setSplitMode]      = useState<SplitMode>(initState ? 'custom' : 'equal')
   const [customAmounts,  setCustomAmounts]  = useState<Record<string, string>>(
-    resubmit ? Object.fromEntries(resubmit.splits.map((s) => [s.user_id, String(s.amount)])) : {}
+    initState ? Object.fromEntries(initState.splits.map((s) => [s.user_id, String(s.amount)])) : {}
   )
 
   // メンバー取得後に選択状態を設定（新規報告時のみ全員選択）
   useEffect(() => {
-    if (members.length > 0 && !resubmit) {
+    if (members.length > 0 && !initState) {
       setSelected(new Set(members.map((m) => m.id)))
     }
   }, [members])
@@ -68,14 +80,29 @@ export default function PaymentReportPage() {
   const [copied, setCopied] = useState(false)
 
   const mutation = useMutation({
-    mutationFn: createPayment,
+    mutationFn: async (vars: Parameters<typeof createPayment>[0]) => {
+      if (editState) {
+        return updatePayment(editState.paymentId, {
+          description: vars.description,
+          amount: vars.amount,
+          payer_id: vars.payer_id,
+          note: vars.note ?? '',
+          splits: vars.splits,
+        })
+      }
+      return createPayment(vars)
+    },
     onSuccess: async (_, vars) => {
       if (resubmit?.oldPaymentId) {
         await deletePayment(resubmit.oldPaymentId).catch(() => {})
       }
       qc.invalidateQueries({ queryKey: ['payments', groupId] })
       qc.invalidateQueries({ queryKey: ['balance', groupId] })
-      setSubmitted({ description: vars.description, amount: vars.amount })
+      if (editState) {
+        navigate('/')
+      } else {
+        setSubmitted({ description: vars.description, amount: vars.amount })
+      }
     },
   })
 
@@ -151,7 +178,7 @@ export default function PaymentReportPage() {
     setSelected(next)
   }
 
-  const pageTitle = resubmit ? '支払いを修正して再申請' : '支払いを報告する'
+  const pageTitle = editState ? '支払いを編集' : resubmit ? '支払いを修正して再申請' : '支払いを報告する'
 
   // 送信成功 → 通知画面
   if (submitted) {
@@ -191,7 +218,12 @@ export default function PaymentReportPage() {
   }
 
   if (isLoading) {
-    return <div className="page"><div className="page-header">← {pageTitle}</div><p style={{ color: 'var(--color-text-sub)' }}>読み込み中...</p></div>
+    return (
+      <div className="page">
+        <div className="page-header">← {pageTitle}</div>
+        <SkeletonForm />
+      </div>
+    )
   }
 
   if (isError) {
@@ -340,7 +372,7 @@ export default function PaymentReportPage() {
 
       <div className="bottom-actions">
         <button className="btn-primary" onClick={handleSubmit} disabled={!canSubmit || mutation.isPending}>
-          {mutation.isPending ? '送信中...' : '送信する'}
+          {mutation.isPending ? '送信中...' : editState ? '保存する' : '送信する'}
         </button>
       </div>
     </div>

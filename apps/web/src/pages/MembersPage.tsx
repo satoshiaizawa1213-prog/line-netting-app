@@ -100,7 +100,19 @@ export default function MembersPage() {
       <div className="card">
         <div className="section-title">参加中のメンバー（{members.length}人）</div>
 
-        {isLoading && <p style={{ color: 'var(--color-text-sub)', fontSize: '0.85rem' }}>読み込み中...</p>}
+        {isLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[1, 2, 3].map((i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' }}>
+                <div className="skeleton" style={{ width: 36, height: 36, borderRadius: '50%' }} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div className="skeleton" style={{ width: '50%', height: 14, borderRadius: 6 }} />
+                  <div className="skeleton" style={{ width: '30%', height: 11, borderRadius: 6 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {members.map((m) => (
           <div key={m.id}>

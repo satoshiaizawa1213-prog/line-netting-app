@@ -123,6 +123,22 @@ export function deletePayment(paymentId: string) {
   return request<{ ok: boolean }>(`/payments/${paymentId}`, { method: 'DELETE' })
 }
 
+export function updatePayment(paymentId: string, payload: {
+  description?: string
+  amount?: number
+  payer_id?: string
+  note?: string
+  splits?: Array<{ user_id: string; amount: number }>
+}) {
+  const params = new URLSearchParams()
+  if (payload.description !== undefined) params.set('description', payload.description)
+  if (payload.amount !== undefined) params.set('amount', String(payload.amount))
+  if (payload.payer_id !== undefined) params.set('payer_id', payload.payer_id)
+  if (payload.note !== undefined) params.set('note', payload.note)
+  if (payload.splits !== undefined) params.set('splits', JSON.stringify(payload.splits))
+  return request<Payment>(`/payments/${paymentId}?${params}`, { method: 'PATCH' })
+}
+
 // ─── Settlements ───────────────────────────────────────────
 export function createSettlement(groupId: string, method: NettingMethod) {
   return request<Settlement>(`/settlements?group_id=${groupId}&method=${method}`, { method: 'POST' })
