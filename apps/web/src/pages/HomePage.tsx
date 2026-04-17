@@ -297,14 +297,27 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* 精算履歴リンク */}
-      <button
-        className="btn-ghost"
-        onClick={() => navigate('/settlements/history')}
-        style={{ width: '100%', fontSize: '0.85rem', color: 'var(--color-text-sub)', padding: '10px', border: '1px dashed var(--color-border)', borderRadius: 10 }}
-      >
-        📋 精算履歴を見る
-      </button>
+      {/* 精算履歴リンク・ヘルプ */}
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button
+          className="btn-ghost"
+          onClick={() => navigate('/settlements/history')}
+          style={{ flex: 1, fontSize: '0.85rem', color: 'var(--color-text-sub)', padding: '10px', border: '1px dashed var(--color-border)', borderRadius: 10 }}
+        >
+          📋 精算履歴
+        </button>
+        <a
+          href="/manual.html"
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+            flex: 1, fontSize: '0.85rem', color: 'var(--color-text-sub)', padding: '10px',
+            border: '1px dashed var(--color-border)', borderRadius: 10,
+            textDecoration: 'none', fontWeight: 500,
+          }}
+        >
+          ❓ 使い方ガイド
+        </a>
+      </div>
 
       <AdBanner />
     </div>

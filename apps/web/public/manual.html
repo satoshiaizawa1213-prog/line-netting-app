@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>使い方ガイド — すっきりワリカン</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #06C755;
+      --green-dark: #04a845;
+      --green-light: #f0fdf4;
+      --text: #1a1a2e;
+      --text-sub: #64748b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --radius: 14px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 60%, #064e3b 100%);
+      padding: 36px 20px 28px;
+      text-align: center;
+    }
+    .header-badge {
+      display: inline-block;
+      background: rgba(6,199,85,0.15);
+      border: 1px solid rgba(6,199,85,0.4);
+      color: #4ade80;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 900; color: #fff; }
+    .header p  { font-size: 0.82rem; color: rgba(255,255,255,0.45); margin-top: 6px; }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+    }
+    .toc-inner { max-width: 640px; margin: 0 auto; }
+    .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
+    .toc-list { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+    .toc-list a {
+      display: inline-block;
+      padding: 5px 12px;
+      background: var(--green-light);
+      border: 1px solid #bbf7d0;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #15803d;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .toc-list a:hover { background: #dcfce7; }
+
+    /* ── MAIN ── */
+    .container { max-width: 640px; margin: 0 auto; padding: 0 20px 64px; }
+
+    /* ── SECTION ── */
+    .section {
+      margin-top: 40px;
+      scroll-margin-top: 16px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .section-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: var(--green-light);
+      border: 1.5px solid #bbf7d0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      flex-shrink: 0;
+    }
+    .section-title { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+    .section-num   { font-size: 0.72rem; font-weight: 700; color: var(--green); margin-bottom: 2px; }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 12px;
+    }
+
+    /* ── STEPS ── */
+    .steps { display: flex; flex-direction: column; gap: 0; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 17px; top: 20px; bottom: 20px; width: 2px;
+      background: linear-gradient(to bottom, var(--green), #bbf7d0);
+    }
+    .step { display: flex; gap: 16px; align-items: flex-start; padding: 12px 0; position: relative; }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--green); color: #fff;
+      font-weight: 800; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; z-index: 1;
+      box-shadow: 0 0 0 3px var(--bg);
+    }
+    .step-body  { padding-top: 6px; flex: 1; }
+    .step-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 4px; }
+    .step-desc  { font-size: 0.83rem; color: var(--text-sub); line-height: 1.6; }
+
+    /* ── TIP / WARN ── */
+    .tip, .warn {
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+    .tip  { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .warn { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .tip-icon, .warn-icon { flex-shrink: 0; font-size: 1rem; }
+
+    /* ── QA ── */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      background: var(--card);
+    }
+    summary {
+      padding: 14px 16px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    summary::after { content: '▼'; font-size: 0.65rem; color: var(--text-sub); flex-shrink: 0; transition: transform 0.2s; }
+    details[open] summary::after { transform: rotate(180deg); }
+    details p { padding: 0 16px 14px; font-size: 0.83rem; color: var(--text-sub); line-height: 1.7; }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+    /* ── BACK LINK ── */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 40px; padding: 10px 20px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 10px; color: var(--text-sub);
+      text-decoration: none; font-size: 0.85rem; font-weight: 600;
+      transition: border-color 0.15s;
+    }
+    .back-link:hover { border-color: var(--green); color: var(--green); }
+    footer-note { display: block; text-align: center; color: var(--text-sub); font-size: 0.78rem; margin-top: 32px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">使い方ガイド</div>
+  <h1>すっきりワリカン</h1>
+  <p>グループ精算をかんたんに</p>
+</div>
+
+<!-- 目次 -->
+<div class="toc">
+  <div class="toc-inner">
+    <div class="toc-title">目次</div>
+    <ul class="toc-list">
+      <li><a href="#start">はじめる</a></li>
+      <li><a href="#payment">支払いを記録する</a></li>
+      <li><a href="#approve">承認・差戻し</a></li>
+      <li><a href="#settle">精算する</a></li>
+      <li><a href="#transfer">振込み・受取り</a></li>
+      <li><a href="#members">メンバー管理</a></li>
+      <li><a href="#faq">よくある質問</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ① はじめる -->
+  <div class="section" id="start">
+    <div class="section-header">
+      <div class="section-icon">🚀</div>
+      <div>
+        <div class="section-num">STEP 1</div>
+        <div class="section-title">グループを作って参加する</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">LINEからアプリを開く</div>
+            <div class="step-desc">LINEのトークからアプリのリンクをタップ。LINEアカウントで自動的にログインされます（登録不要）。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">グループを作成する</div>
+            <div class="step-desc">初回起動時にグループ名を入力して「グループを作成」をタップ。招待リンクが発行されます。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">招待リンクをトークに送る</div>
+            <div class="step-desc">「リンクをコピー」してLINEグループトークに貼り付け。受け取ったメンバーがリンクをタップすると自動で参加できます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>複数のグループに参加できます。ホーム画面のグループ名をタップするとグループを切り替えられます。</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ② 支払いを記録する -->
+  <div class="section" id="payment">
+    <div class="section-header">
+      <div class="section-icon">💸</div>
+      <div>
+        <div class="section-num">STEP 2</div>
+        <div class="section-title">支払いを記録する</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">「支払いを報告」をタップ</div>
+            <div class="step-desc">ホーム画面の緑のボタンから報告画面を開きます。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">用途・金額・立替者を入力</div>
+            <div class="step-desc">例：「夕食代」「¥3,000」「自分（太郎）」。立替者は自分以外のメンバーも選べます。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">対象メンバーと分割方法を選ぶ</div>
+            <div class="step-desc">
+              分割方法は3種類から選べます：<br />
+              <strong>均等割り</strong> — 人数で均等に割る<br />
+              <strong>傾斜割り</strong> — メンバーごとの重みで按分<br />
+              <strong>個別指定</strong> — 一人ひとり金額を手入力
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <div class="step-title">「送信する」をタップ</div>
+            <div class="step-desc">送信するとメンバーにLINE通知が届きます。承認待ち状態になります。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="tip-icon">✏️</span>
+      <span>承認待ちの間は自分で編集できます。報告の詳細画面から「この報告を編集する」をタップしてください。</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ③ 承認・差戻し -->
+  <div class="section" id="approve">
+    <div class="section-header">
+      <div class="section-icon">✅</div>
+      <div>
+        <div class="section-num">STEP 3</div>
+        <div class="section-title">支払いを承認・差戻しする</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">通知またはホーム画面から確認</div>
+            <div class="step-desc">「承認が必要」セクションに表示された報告をタップして詳細を確認します。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">承認 or 差戻しを選ぶ</div>
+            <div class="step-desc">
+              <strong>承認する</strong> — 金額・内容に問題なければ緑のボタンをタップ<br />
+              <strong>差戻しする</strong> — 理由を入力して差戻し。報告者にLINEで通知が届きます
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="warn">
+      <span class="warn-icon">⚠️</span>
+      <span>自分が報告した支払いは自分では承認できません。他のメンバーの承認を待ちましょう。</span>
+    </div>
+    <div class="tip">
+      <span class="tip-icon">⚡</span>
+      <span>複数の承認待ちがある場合、「○件まとめて承認」ボタンで一括承認できます。</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ④ 精算する -->
+  <div class="section" id="settle">
+    <div class="section-header">
+      <div class="section-icon">🤝</div>
+      <div>
+        <div class="section-num">STEP 4</div>
+        <div class="section-title">精算を提案・実行する</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">「精算する」ボタンをタップ</div>
+            <div class="step-desc">確定済みの支払いがある状態で、ホーム画面の「精算する」をタップします。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">精算方法を選んで提案</div>
+            <div class="step-desc">
+              <strong>マルチラテラル</strong>（推奨）— 全員の貸し借りを相殺して振込み回数を最小化<br />
+              <strong>バイラテラル</strong>— 2人ずつの直接清算
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">全員が承認したら自動実行</div>
+            <div class="step-desc">提案後、全メンバーがアプリ内で承認すると精算が確定。振込み先リストが表示されます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tip">
+      <span class="tip-icon">💡</span>
+      <span>精算後も履歴は「精算履歴を見る」から確認できます。</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ⑤ 振込み・受取り -->
+  <div class="section" id="transfer">
+    <div class="section-header">
+      <div class="section-icon">💳</div>
+      <div>
+        <div class="section-num">STEP 5</div>
+        <div class="section-title">振込み・受取りを管理する</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">「振込み・受取り」を開く</div>
+            <div class="step-desc">ホーム画面のクイックアクションから「振込み・受取り」をタップ。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">相手ごとにまとめて確認</div>
+            <div class="step-desc">振込む相手・受け取る相手ごとにカード表示。複数回の精算がある場合は明細も表示されます。</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">完了したらチェックを入れる</div>
+            <div class="step-desc">実際に振り込んだら「振込み完了にする」をタップ。受取り側も「受取り完了にする」で記録します。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="warn">
+      <span class="warn-icon">⚠️</span>
+      <span>振込みの完了は記録のみです。実際の送金はLINE Pay・銀行振込など別途行ってください。</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ⑥ メンバー管理 -->
+  <div class="section" id="members">
+    <div class="section-header">
+      <div class="section-icon">👥</div>
+      <div>
+        <div class="section-num">管理</div>
+        <div class="section-title">メンバー管理</div>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🔗 メンバーを招待する</div>
+          <div style="font-size: 0.83rem; color: var(--text-sub);">「メンバー管理」→「招待リンクをコピー」でリンクを取得。LINEトークに貼り付けて共有します。</div>
+        </div>
+        <div style="height: 1px; background: var(--border);"></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">⚖️ 傾斜割り（重み）の設定</div>
+          <div style="font-size: 0.83rem; color: var(--text-sub);">メンバーごとに負担割合の重みを設定できます。例：社会人2 : 学生1。支払い報告時に「傾斜割り」を選ぶと自動で按分されます。</div>
+        </div>
+        <div style="height: 1px; background: var(--border);"></div>
+        <div>
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 4px;">🚪 グループから抜ける・削除</div>
+          <div style="font-size: 0.83rem; color: var(--text-sub);">グループ名タップ → グループ切り替え画面から操作できます。グループ削除はグループ作成者のみ可能です。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- FAQ -->
+  <div class="section" id="faq">
+    <div class="section-header">
+      <div class="section-icon">❓</div>
+      <div>
+        <div class="section-num">FAQ</div>
+        <div class="section-title">よくある質問</div>
+      </div>
+    </div>
+
+    <details>
+      <summary>承認後に金額を変えたい</summary>
+      <p>一度承認されると編集できません。差戻しをしてもらい、報告者が「修正して再申請」から内容を変更して再送信してください。</p>
+    </details>
+
+    <details>
+      <summary>精算前に退会したメンバーがいる</summary>
+      <p>メンバーを非アクティブにしてから精算を行ってください。精算額の計算からは除外されます。過去の確定済み支払いは変更されません。</p>
+    </details>
+
+    <details>
+      <summary>精算提案を取り消したい</summary>
+      <p>精算提案の詳細画面から「提案をキャンセル」できます（提案者のみ）。キャンセル後は再度提案できます。</p>
+    </details>
+
+    <details>
+      <summary>間違えて却下してしまった</summary>
+      <p>一度却下した操作は取り消せません。報告者に「修正して再申請」してもらうか、再度同じ内容で新しい支払いを報告してください。</p>
+    </details>
+
+    <details>
+      <summary>振込み先が多すぎる</summary>
+      <p>精算方法を「マルチラテラルネッティング」にすると、全員の貸し借りを相殺して振込み回数を最小化できます。人数が多いほど効果的です。</p>
+    </details>
+
+    <details>
+      <summary>傾斜割りの重みってどう設定する？</summary>
+      <p>「メンバー管理」画面から各メンバーの重みを数字で設定します（デフォルト：1）。例えば2:1:1にすると、最初のメンバーが2倍の負担になります。支払い報告時に「傾斜割り」を選ぶと自動で計算されます。</p>
+    </details>
+
+    <details>
+      <summary>グループを複数使いたい</summary>
+      <p>ホーム画面のグループ名をタップするとグループ切り替え画面が開きます。「新しいグループを作成」または招待リンクから追加のグループに参加できます。</p>
+    </details>
+
+    <details>
+      <summary>アカウントを削除したい</summary>
+      <p>現在アカウント削除機能の準備中です。削除するとグループメンバーシップが無効化され、表示名が「退会済みユーザー」に変更されます。</p>
+    </details>
+
+  </div>
+
+  <a href="/lp.html" class="back-link">← トップページに戻る</a>
+  <div style="text-align: center; color: var(--text-sub); font-size: 0.78rem; margin-top: 20px; padding-bottom: 32px;">
+    © 2026 すっきりワリカン
+  </div>
+
+</div>
+</body>
+</html>
