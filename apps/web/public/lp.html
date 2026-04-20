@@ -8,6 +8,7 @@
   <meta property="og:title" content="すっきりワリカン — グループの割り勘・精算をかんたんに" />
   <meta property="og:description" content="旅行・飲み会・日々の立替えをLINEで完結。支払いを記録して、精算時にまとめて計算。" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://sukkiriwari.vercel.app/og-image.png" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -314,6 +315,39 @@
     }
     footer a { color: rgba(255,255,255,0.4); text-decoration: none; margin: 0 8px; }
 
+    /* ── FADE IN ANIMATION ── */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ── FLOATING CTA ── */
+    .floating-cta {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 100;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .floating-cta.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .floating-cta .btn-line {
+      font-size: 0.9rem;
+      padding: 12px 24px;
+      box-shadow: 0 8px 32px rgba(6,199,85,0.5), 0 2px 8px rgba(0,0,0,0.2);
+    }
+
     @media (max-width: 360px) {
       .hero h1 { font-size: 1.6rem; }
       .use-cases { grid-template-columns: 1fr; }
@@ -325,6 +359,7 @@
 <!-- HERO -->
 <section class="hero">
   <div class="hero-badge">LINE Mini App</div>
+  <div style="font-size: 1.1rem; font-weight: 900; color: #4ade80; letter-spacing: 0.04em; margin-bottom: 8px;">すっきりワリカン</div>
   <h1>グループの割り勘を<br /><span>かんたん精算</span></h1>
   <p>旅行・飲み会・日々の立替えを記録して、最小の振込み回数でスッキリ精算。</p>
   <a href="https://line.me/R/app/" class="btn-line" id="open-app">
@@ -334,6 +369,16 @@
     LINEで開く（無料）
   </a>
 </section>
+
+<!-- FLOATING CTA -->
+<div class="floating-cta" id="floating-cta">
+  <a href="https://line.me/R/app/" class="btn-line" id="open-app-float">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.630 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314" fill="white"/>
+    </svg>
+    LINEで開く（無料）
+  </a>
+</div>
 
 <!-- STATS -->
 <div class="stats">
@@ -355,7 +400,7 @@
 
 <!-- FEATURES -->
 <section>
-  <div class="section-inner">
+  <div class="section-inner fade-in">
     <div class="section-label">Features</div>
     <div class="section-title">これひとつで<br />割り勘が完結</div>
     <div class="section-desc">アプリのインストール不要。LINEから直接使えます。</div>
@@ -394,7 +439,7 @@
 
 <!-- NETTING DIAGRAM -->
 <section>
-  <div class="section-inner">
+  <div class="section-inner fade-in">
     <div class="section-label">How it works</div>
     <div class="section-title">マルチラテラル<br />ネッティングとは？</div>
     <div class="section-desc">複雑な貸し借りをまとめて、振込み回数を最小限に。</div>
@@ -514,7 +559,7 @@
 
 <!-- HOW TO USE -->
 <section>
-  <div class="section-inner">
+  <div class="section-inner fade-in">
     <div class="section-label">How to use</div>
     <div class="section-title">3ステップで<br />すぐ使える</div>
     <div class="section-desc">面倒な登録なし。LINEアカウントだけでOK。</div>
@@ -546,7 +591,7 @@
 
 <!-- USE CASES -->
 <section>
-  <div class="section-inner">
+  <div class="section-inner fade-in">
     <div class="section-label">Use cases</div>
     <div class="section-title">こんな場面で<br />活躍します</div>
     <div class="section-desc" style="margin-bottom: 20px;">旅先での立替えから、日常の割り勘まで。</div>
@@ -594,20 +639,51 @@
     <a href="/privacy.html">プライバシーポリシー</a>
     <a href="#">お問い合わせ</a>
   </div>
-  <div style="margin-top: 8px;">© 2025 すっきりワリカン</div>
+  <div style="margin-top: 8px;">© 2026 すっきりワリカン</div>
 </footer>
 
 <script>
   // LIFF ID を埋め込む（Vercel の環境変数からビルド時に注入できないため JS で設定）
   // デプロイ後に LIFF ID を直接書き換えてください
-  const LIFF_ID = '2009695005-usQj5Qay'  // ← ここに LIFF ID を入力 例: '1234567890-abcdefgh'
+  const LIFF_ID = '2009695005-usQj5Qay'
 
   function setLinks() {
     const url = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : '#'
     document.getElementById('open-app').href = url
     document.getElementById('open-app-2').href = url
+    document.getElementById('open-app-float').href = url
   }
   setLinks()
+
+  // Floating CTA: ヒーローのCTAが画面外に出たら表示
+  const heroCta = document.getElementById('open-app')
+  const floatingCta = document.getElementById('floating-cta')
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) {
+        floatingCta.classList.add('show')
+      } else {
+        floatingCta.classList.remove('show')
+      }
+    },
+    { threshold: 0 }
+  )
+  observer.observe(heroCta)
+
+  // Scroll fade-in animation
+  const fadeEls = document.querySelectorAll('.fade-in')
+  const fadeObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible')
+          fadeObserver.unobserve(entry.target)
+        }
+      })
+    },
+    { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+  )
+  fadeEls.forEach(el => fadeObserver.observe(el))
 </script>
 
 </body>

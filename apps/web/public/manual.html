@@ -51,6 +51,10 @@
       background: var(--card);
       border-bottom: 1px solid var(--border);
       padding: 16px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .toc-inner { max-width: 640px; margin: 0 auto; }
     .toc-title { font-size: 0.72rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 10px; }
@@ -176,10 +180,42 @@
       transition: border-color 0.15s;
     }
     .back-link:hover { border-color: var(--green); color: var(--green); }
-    footer-note { display: block; text-align: center; color: var(--text-sub); font-size: 0.78rem; margin-top: 32px; }
+    .footer-note { display: block; text-align: center; color: var(--text-sub); font-size: 0.78rem; margin-top: 32px; }
+
+    /* ── PAGE TOP BUTTON ── */
+    .page-top {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(6,199,85,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .page-top.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .page-top:hover { background: var(--green-dark); }
   </style>
 </head>
 <body>
+
+<button class="page-top" id="page-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="ページトップへ">↑</button>
 
 <div class="header">
   <div class="header-badge">使い方ガイド</div>
@@ -519,5 +555,16 @@
   </div>
 
 </div>
+<script>
+  // Page top button
+  const pageTop = document.getElementById('page-top')
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 300) {
+      pageTop.classList.add('show')
+    } else {
+      pageTop.classList.remove('show')
+    }
+  }, { passive: true })
+</script>
 </body>
 </html>
