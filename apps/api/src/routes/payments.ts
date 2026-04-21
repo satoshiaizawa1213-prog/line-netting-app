@@ -6,6 +6,18 @@ import { pushLineMessages } from '../lib/line-notify'
 const payments = new Hono()
 payments.use('*', authMiddleware)
 
+/** グループのメンバーシップを確認するヘルパー */
+async function assertMember(groupId: string, userId: string): Promise<boolean> {
+  const { data } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .maybeSingle()
+  return !!data
+}
+
 /** 支払い報告を作成（クエリパラメータで受け取る） */
 payments.post('/', async (c) => {
   const user = c.get('user')
@@ -45,6 +57,11 @@ payments.post('/', async (c) => {
   // description 長さチェック
   if (description.length > 100) {
     return c.json({ error: 'description must be 100 characters or less' }, 400)
+  }
+
+  // note 長さチェック
+  if (note && note.length > 500) {
+    return c.json({ error: 'note must be 500 characters or less' }, 400)
   }
 
   let splits: Array<{ user_id: string; amount: number }>
@@ -134,6 +151,12 @@ payments.post('/:paymentId/approve', async (c) => {
 
   if (fetchError || !payment) return c.json({ error: 'Payment not found' }, 404)
   if (payment.status !== 'pending') return c.json({ error: 'Already processed' }, 400)
+
+  // グループメンバーシップ確認（IDOR対策）
+  if (!(await assertMember(payment.group_id, user.id))) {
+    return c.json({ error: 'Forbidden' }, 403)
+  }
+
   if (payment.reporter_id === user.id) return c.json({ error: 'Reporter cannot approve own report' }, 403)
 
   // 承認ログを挿入
@@ -228,6 +251,7 @@ payments.patch('/:paymentId', async (c) => {
   }
 
   if (note !== undefined) {
+    if (note && note.length > 500) return c.json({ error: 'note must be 500 characters or less' }, 400)
     updates.note = note || null
   }
 

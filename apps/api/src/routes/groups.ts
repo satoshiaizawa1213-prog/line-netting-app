@@ -66,13 +66,26 @@ groups.post('/', async (c) => {
   return c.json({ id: groupId, join_token: joinToken })
 })
 
-/** メンバーを削除（is_active = false） */
+/** メンバーを削除（is_active = false）— グループ作成者のみ実行可能 */
 groups.delete('/:groupId/members/:userId', async (c) => {
   const { groupId, userId } = c.req.param()
   const me = c.get('user')
 
   if (!(await assertMember(groupId, me.id))) return c.json({ error: 'Forbidden' }, 403)
   if (userId === me.id) return c.json({ error: 'Cannot remove yourself' }, 400)
+
+  // グループ作成者（最古の参加者）のみメンバーを削除できる
+  const { data: first } = await db
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .order('joined_at', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (!first || first.user_id !== me.id) {
+    return c.json({ error: 'Only the group creator can remove members' }, 403)
+  }
 
   const { error } = await db
     .from('group_members')

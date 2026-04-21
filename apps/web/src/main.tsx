@@ -25,14 +25,17 @@ function showLoading() {
 }
 
 function showError(message: string) {
+  // XSS対策: メッセージは innerHTML ではなく textContent で設定する
   root.innerHTML = `
     <div style="padding:32px 20px;text-align:center;background:#F3F4F6;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div style="font-size:2rem;margin-bottom:16px;">⚠️</div>
       <p style="color:#111827;font-weight:700;font-size:1rem;margin-bottom:8px;">初期化に失敗しました</p>
-      <p style="color:#6B7280;font-size:0.83rem;line-height:1.6;word-break:break-all;">${message}</p>
+      <p id="error-msg" style="color:#6B7280;font-size:0.83rem;line-height:1.6;word-break:break-all;"></p>
     </div>
     <style>body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;margin:0;max-width:480px;margin:0 auto;}</style>
   `
+  const msgEl = document.getElementById('error-msg')
+  if (msgEl) msgEl.textContent = message
 }
 
 function showGroupSetup(): Promise<string> {

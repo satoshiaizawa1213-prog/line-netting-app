@@ -161,8 +161,12 @@ settlements.get('/proposals', async (c) => {
 settlements.post('/proposals', async (c) => {
   const user = c.get('user')
   const group_id = c.req.query('group_id') ?? ''
-  const method = (c.req.query('method') ?? 'multilateral') as 'multilateral' | 'bilateral'
+  const methodRaw = c.req.query('method') ?? 'multilateral'
   if (!group_id) return c.json({ error: 'group_id is required' }, 400)
+  if (methodRaw !== 'multilateral' && methodRaw !== 'bilateral') {
+    return c.json({ error: 'method must be multilateral or bilateral' }, 400)
+  }
+  const method = methodRaw as 'multilateral' | 'bilateral'
 
   // メンバーシップ確認
   const { data: memberCheck } = await db
