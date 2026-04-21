@@ -45,6 +45,10 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
   const cached = tokenCache.get(token)
   if (cached && cached.expiresAt > Date.now()) {
     c.set('user', cached.user)
+    // キャッシュヒット時もレート制限を適用する
+    if (!checkRateLimit(cached.user.id)) {
+      return c.json({ error: 'Too many requests' }, 429)
+    }
     await next()
     return
   }
@@ -104,12 +108,14 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
   if (dbError || !data) return c.json({ error: 'DB error' }, 500)
 
   const user = data as AuthUser
-  tokenCache.set(token, { user, expiresAt: Date.now() + CACHE_TTL_MS })
-  c.set('user', user)
 
+  // レート制限チェック（キャッシュ更新・next() より前に実施）
   if (!checkRateLimit(user.id)) {
     return c.json({ error: 'Too many requests' }, 429)
   }
+
+  tokenCache.set(token, { user, expiresAt: Date.now() + CACHE_TTL_MS })
+  c.set('user', user)
 
   await next()
 })

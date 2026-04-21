@@ -31,6 +31,8 @@ groups.post('/', async (c) => {
   const line_group_id = c.req.query('gid') ?? ''
   const name = c.req.query('name') ?? undefined
   if (!line_group_id) return c.json({ error: 'gid is required' }, 400)
+  if (line_group_id.length > 256) return c.json({ error: 'gid is too long' }, 400)
+  if (name && name.length > 100) return c.json({ error: 'name must be 100 characters or less' }, 400)
   const user = c.get('user')
 
   // 既存グループを先に検索
@@ -273,7 +275,7 @@ groups.get('/:groupId/members', async (c) => {
   return c.json(result)
 })
 
-/** メンバーの傾斜割weight を更新（クエリパラメータで受け取る） */
+/** メンバーの傾斜割weight を更新 — 本人またはグループ作成者のみ可能 */
 groups.patch('/:groupId/members/:userId/weight', async (c) => {
   const { groupId, userId } = c.req.param()
   const user = c.get('user')
@@ -281,6 +283,20 @@ groups.patch('/:groupId/members/:userId/weight', async (c) => {
 
   if (!(await assertMember(groupId, user.id))) return c.json({ error: 'Forbidden' }, 403)
   if (!Number.isFinite(weight) || weight <= 0 || weight > 100) return c.json({ error: 'Weight must be between 0 and 100' }, 400)
+
+  // 本人または作成者のみ weight を変更できる
+  if (user.id !== userId) {
+    const { data: first } = await db
+      .from('group_members')
+      .select('user_id')
+      .eq('group_id', groupId)
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    if (!first || first.user_id !== user.id) {
+      return c.json({ error: 'Only the group creator or the member themselves can update weight' }, 403)
+    }
+  }
 
   const { error } = await db
     .from('group_members')

@@ -139,11 +139,6 @@ export function updatePayment(paymentId: string, payload: {
   return request<Payment>(`/payments/${paymentId}?${params}`, { method: 'PATCH' })
 }
 
-// ─── Settlements ───────────────────────────────────────────
-export function createSettlement(groupId: string, method: NettingMethod) {
-  return request<Settlement>(`/settlements?group_id=${groupId}&method=${method}`, { method: 'POST' })
-}
-
 // ─── Settlement Proposals ──────────────────────────────────
 export function getProposals(groupId: string) {
   return request<SettlementProposal[]>(`/settlements/proposals?group_id=${groupId}`)
