@@ -23,15 +23,15 @@ contact.post('/', async (c) => {
     return c.json({ error: '送信回数の上限に達しました。時間をおいてからお試しください。' }, 429)
   }
 
-  const body = await c.req.json().catch(() => null)
+  console.log('[contact] POST received, parsing body...')
+  const body = await c.req.parseBody().catch(() => null)
+  console.log('[contact] body parsed:', !!body)
   if (!body) return c.json({ error: 'リクエスト形式が不正です。' }, 400)
 
-  const { name, email, message, _honeypot } = body as {
-    name?: string
-    email?: string
-    message?: string
-    _honeypot?: string
-  }
+  const name     = typeof body['name']      === 'string' ? body['name']      : undefined
+  const email    = typeof body['email']     === 'string' ? body['email']     : undefined
+  const message  = typeof body['message']   === 'string' ? body['message']   : undefined
+  const _honeypot = typeof body['_honeypot'] === 'string' ? body['_honeypot'] : undefined
 
   // ハニーポット: ボットは隠しフィールドを埋める
   if (_honeypot) return c.json({ ok: true }) // サイレント無視

@@ -361,15 +361,16 @@
 
     setLoading(true)
     try {
+      const params = new URLSearchParams({
+        name: nameEl.value.trim(),
+        email: emailEl.value.trim(),
+        message: msgEl.value.trim(),
+        _honeypot: hpEl.value,
+      })
       const res = await fetch(`${API_BASE}/contact`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: nameEl.value.trim(),
-          email: emailEl.value.trim(),
-          message: msgEl.value.trim(),
-          _honeypot: hpEl.value,
-        }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
