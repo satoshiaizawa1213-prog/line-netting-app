@@ -6,6 +6,7 @@ import { pushLineMessages } from './lib/line-notify'
 import groups from './routes/groups'
 import payments from './routes/payments'
 import settlements from './routes/settlements'
+import contact from './routes/contact'
 
 const app = new Hono()
 
@@ -59,5 +60,6 @@ if (process.env.NODE_ENV !== 'production') {
 app.route('/groups',      groups)
 app.route('/payments',    payments)
 app.route('/settlements', settlements)
+app.route('/contact',     contact)
 
 export default app
