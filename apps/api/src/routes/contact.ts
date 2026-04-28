@@ -23,15 +23,13 @@ contact.post('/', async (c) => {
     return c.json({ error: '送信回数の上限に達しました。時間をおいてからお試しください。' }, 429)
   }
 
-  console.log('[contact] POST received, parsing body...')
-  const body = await c.req.parseBody().catch(() => null)
-  console.log('[contact] body parsed:', !!body)
-  if (!body) return c.json({ error: 'リクエスト形式が不正です。' }, 400)
-
-  const name     = typeof body['name']      === 'string' ? body['name']      : undefined
-  const email    = typeof body['email']     === 'string' ? body['email']     : undefined
-  const message  = typeof body['message']   === 'string' ? body['message']   : undefined
-  const _honeypot = typeof body['_honeypot'] === 'string' ? body['_honeypot'] : undefined
+  console.log('[contact] POST received')
+  // 他のルートと同じくクエリパラメーターで受け取る
+  const name      = c.req.query('name')
+  const email     = c.req.query('email')
+  const message   = c.req.query('message')
+  const _honeypot = c.req.query('_honeypot')
+  console.log('[contact] params:', { name: !!name, email: !!email, message: !!message })
 
   // ハニーポット: ボットは隠しフィールドを埋める
   if (_honeypot) return c.json({ ok: true }) // サイレント無視

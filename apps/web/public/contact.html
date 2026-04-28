@@ -367,10 +367,8 @@
         message: msgEl.value.trim(),
         _honeypot: hpEl.value,
       })
-      const res = await fetch(`${API_BASE}/contact`, {
+      const res = await fetch(`${API_BASE}/contact?${params.toString()}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
