@@ -54,8 +54,16 @@ contact.post('/', async (c) => {
   }
 
   const ownerLineUserId = process.env.OWNER_LINE_USER_ID
+  const lineToken = process.env.LINE_CHANNEL_ACCESS_TOKEN
+  console.log('[contact] OWNER_LINE_USER_ID set:', !!ownerLineUserId)
+  console.log('[contact] LINE_CHANNEL_ACCESS_TOKEN set:', !!lineToken)
+
   if (!ownerLineUserId) {
     console.error('[contact] OWNER_LINE_USER_ID is not set')
+    return c.json({ error: '通知設定が未完了です。しばらくお待ちください。' }, 503)
+  }
+  if (!lineToken) {
+    console.error('[contact] LINE_CHANNEL_ACCESS_TOKEN is not set')
     return c.json({ error: '通知設定が未完了です。しばらくお待ちください。' }, 503)
   }
 
@@ -69,10 +77,23 @@ contact.post('/', async (c) => {
     message.trim(),
   ].join('\n')
 
-  const results = await pushLineMessages(
-    [{ line_user_id: ownerLineUserId }],
-    lineMessage
-  )
+  console.log('[contact] Sending LINE push to:', ownerLineUserId.slice(0, 5) + '...')
+
+  // 8秒タイムアウト付きで LINE API を呼ぶ
+  let results
+  try {
+    results = await Promise.race([
+      pushLineMessages([{ line_user_id: ownerLineUserId }], lineMessage),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('LINE API timeout after 8s')), 8000)
+      ),
+    ])
+  } catch (e) {
+    console.error('[contact] LINE push error:', e)
+    return c.json({ error: 'LINE通知の送信に失敗しました。時間をおいてからお試しください。' }, 500)
+  }
+
+  console.log('[contact] LINE push result:', JSON.stringify(results[0]))
 
   if (!results[0]?.ok) {
     console.error('[contact] LINE push failed:', results[0])
