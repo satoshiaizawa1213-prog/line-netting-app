@@ -775,46 +775,101 @@
     <div class="app-header">
       <div class="app-header-title">精算する</div>
     </div>
-    <div style="background:var(--gray);padding-bottom:16px;">
-      <div class="netting-card" style="opacity:0;animation:fadeUp 0.5s ease 0.3s forwards">
-        <div class="netting-label">マルチラテラルネッティング</div>
-        <div class="netting-title">振込み回数を最小化 ✨</div>
-        <div class="netting-compare">
-          <div class="netting-box before">
-            <div class="netting-box-label">BEFORE</div>
-            <div class="netting-arrow-count">6回</div>
-            <div class="netting-arrow-sub">の振込み</div>
-          </div>
-          <div class="netting-vs">→</div>
-          <div class="netting-box after">
-            <div class="netting-box-label">AFTER</div>
-            <div class="netting-arrow-count">2回</div>
-            <div class="netting-arrow-sub">の振込み</div>
+    <div style="background:var(--gray);padding:0 16px 16px;overflow:hidden;">
+
+      <!-- Phase 1: 承認済み立替一覧 -->
+      <div id="s5-phase1" style="opacity:0;transition:opacity 0.5s ease">
+        <div style="font-size:10px;color:var(--sub);text-align:center;padding:8px 0 6px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase">
+          承認済みの立替を集計
+        </div>
+        <!-- 夕食・飲み代 — Scene 4 との連携ハイライト -->
+        <div style="background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:5px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:3px solid #06c755;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px">🍺</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:var(--text)">夕食・飲み代</div>
+              <div style="font-size:10px;color:var(--sub)">たろう立替</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">¥18,000</div>
+              <div style="font-size:10px;font-weight:700;color:#06c755;background:#e8faf0;padding:1px 6px;border-radius:4px;white-space:nowrap">各¥4,500 ✓承認済み</div>
+            </div>
           </div>
         </div>
-        <div class="netting-save" id="netting-save">
-          🎉 振込みが 4回 減りました！
+        <!-- 宿泊費 -->
+        <div style="background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:5px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:3px solid #06c755;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px">🏨</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:var(--text)">宿泊費</div>
+              <div style="font-size:10px;color:var(--sub)">はなこ立替</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">¥32,000</div>
+              <div style="font-size:10px;font-weight:700;color:#06c755;background:#e8faf0;padding:1px 6px;border-radius:4px;white-space:nowrap">各¥8,000 ✓承認済み</div>
+            </div>
+          </div>
+        </div>
+        <!-- 交通費 -->
+        <div style="background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:5px;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-left:3px solid #06c755;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px">🚃</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:700;color:var(--text)">交通費</div>
+              <div style="font-size:10px;color:var(--sub)">じろう立替</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:800;color:var(--text)">¥6,400</div>
+              <div style="font-size:10px;font-weight:700;color:#06c755;background:#e8faf0;padding:1px 6px;border-radius:4px;white-space:nowrap">各¥1,600 ✓承認済み</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;padding:3px 2px 0;font-size:10px;color:var(--sub);">
+          合計 <strong style="color:var(--text);margin-left:4px">¥56,400</strong>
         </div>
       </div>
 
-      <!-- 振込みリスト -->
-      <div style="background:var(--white);margin:0 16px;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);opacity:0;animation:fadeUp 0.5s ease 1.0s forwards">
-        <div class="form-label" style="margin-bottom:12px">振込み先リスト</div>
-        <div class="split-row">
-          <div class="split-avatar" style="background:#fce7f3">👤</div>
-          <div class="split-name">じろう → たろう</div>
-          <div class="split-amount">¥3,200</div>
-        </div>
-        <div class="split-row">
-          <div class="split-avatar" style="background:#dbeafe">👤</div>
-          <div class="split-name">さぶろう → たろう</div>
-          <div class="split-amount">¥4,100</div>
+      <!-- Phase 2: BEFORE ネッティング -->
+      <div id="s5-phase2" style="opacity:0;transition:opacity 0.5s ease">
+        <div style="margin-top:7px;background:#fff;border-radius:14px;padding:11px 14px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="font-size:10px;color:var(--sub);font-weight:700;letter-spacing:0.05em;margin-bottom:8px">マルチラテラルネッティング</div>
+          <div style="display:flex;align-items:center;justify-content:space-around;">
+            <div style="text-align:center;">
+              <div style="font-size:10px;color:var(--sub);font-weight:600;margin-bottom:2px">そのまま</div>
+              <div style="font-size:26px;font-weight:900;color:#ef4444;line-height:1.1">6回</div>
+              <div style="font-size:10px;color:var(--sub)">の振込み</div>
+            </div>
+            <div style="font-size:22px;color:var(--sub);">→</div>
+            <!-- After — Phase 3 で表示 -->
+            <div id="s5-after" style="text-align:center;opacity:0;transition:opacity 0.5s ease;">
+              <div style="font-size:10px;color:var(--sub);font-weight:600;margin-bottom:2px">ネッティング後</div>
+              <div style="font-size:26px;font-weight:900;color:var(--green);line-height:1.1">2回</div>
+              <div style="font-size:10px;color:var(--sub)">の振込み</div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style="margin:12px 16px 0;background:var(--green);border-radius:14px;padding:16px;text-align:center;color:#fff;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(6,199,85,0.35);opacity:0;animation:fadeUp 0.5s ease 1.5s forwards">
-        🤝 精算を提案する
+      <!-- Phase 3: 振込みリスト + ボタン -->
+      <div id="s5-phase3" style="opacity:0;transition:opacity 0.5s ease;">
+        <div style="background:#fff;margin-top:7px;border-radius:14px;padding:11px 14px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="font-size:11px;color:var(--sub);font-weight:700;margin-bottom:8px">振込み先リスト</div>
+          <div class="split-row">
+            <div class="split-avatar" style="background:#fce7f3">👤</div>
+            <div class="split-name">じろう → たろう</div>
+            <div class="split-amount">¥3,200</div>
+          </div>
+          <div class="split-row">
+            <div class="split-avatar" style="background:#dbeafe">👤</div>
+            <div class="split-name">さぶろう → たろう</div>
+            <div class="split-amount">¥4,100</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;background:var(--green);border-radius:14px;padding:13px;text-align:center;color:#fff;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(6,199,85,0.35);">
+          🤝 精算を提案する
+        </div>
       </div>
+
     </div>
     <div class="timer-bar" id="t5"></div>
   </div>
@@ -883,23 +938,28 @@
 
 <script>
   const SCENES = ['s1','s2','s3','s4','s5','s6']
-  const DURATIONS = [4000, 5000, 6000, 6000, 6500, 5000] // ms per scene
+  const DURATIONS = [4000, 5000, 6000, 6000, 7500, 5000] // ms per scene
   let current = 0
   let paused = false
   let timer = null
   let sceneTimer = null  // シーン内タイムアウト（オーバーレイ等）
+  let sceneTimers = []   // シーン内タイムアウト複数管理
   let timerStart = null
   let timerDuration = 0
 
   function resetSceneState() {
-    // 前シーンのタイムアウトをキャンセル
+    // 前シーンのタイムアウトをすべてキャンセル
     if (sceneTimer) { clearTimeout(sceneTimer); sceneTimer = null }
-    // オーバーレイをリセット
+    sceneTimers.forEach(t => clearTimeout(t))
+    sceneTimers = []
+    // Scene 4 オーバーレイをリセット
     const ov = document.getElementById('success4')
     if (ov) { ov.style.opacity = '0'; ov.style.animation = '' }
-    // ネッティング保存バッジをリセット
-    const ns = document.getElementById('netting-save')
-    if (ns) { ns.style.opacity = '0'; ns.style.animation = '' }
+    // Scene 5 フェーズをリセット
+    ;['s5-phase1','s5-phase2','s5-after','s5-phase3'].forEach(id => {
+      const el = document.getElementById(id)
+      if (el) el.style.opacity = '0'
+    })
   }
 
   function showScene(idx) {
@@ -938,13 +998,26 @@
       }, 3500)
     }
     if (idx === 4) {
-      sceneTimer = setTimeout(() => {
-        if (current === 4) {
-          const el = document.getElementById('netting-save')
-          el.style.animation = 'fadeIn 0.4s ease forwards'
-          el.style.opacity = '1'
-        }
-      }, 800)
+      // Phase 1: 承認済み立替一覧 (0.3s)
+      sceneTimers.push(setTimeout(() => {
+        if (current !== 4) return
+        document.getElementById('s5-phase1').style.opacity = '1'
+      }, 300))
+      // Phase 2: BEFORE ネッティング (2.3s)
+      sceneTimers.push(setTimeout(() => {
+        if (current !== 4) return
+        document.getElementById('s5-phase2').style.opacity = '1'
+      }, 2300))
+      // Phase 3a: AFTER の数字 (4.0s)
+      sceneTimers.push(setTimeout(() => {
+        if (current !== 4) return
+        document.getElementById('s5-after').style.opacity = '1'
+      }, 4000))
+      // Phase 3b: 振込みリスト + ボタン (4.7s)
+      sceneTimers.push(setTimeout(() => {
+        if (current !== 4) return
+        document.getElementById('s5-phase3').style.opacity = '1'
+      }, 4700))
     }
 
     scheduleNext()
