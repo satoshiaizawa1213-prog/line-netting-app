@@ -659,17 +659,29 @@
   // Floating CTA: ヒーローのCTAが画面外に出たら表示
   const heroCta = document.getElementById('open-app')
   const floatingCta = document.getElementById('floating-cta')
-  const observer = new IntersectionObserver(
-    ([entry]) => {
-      if (!entry.isIntersecting) {
-        floatingCta.classList.add('show')
-      } else {
-        floatingCta.classList.remove('show')
-      }
-    },
+
+  let heroVisible = true
+  let footerVisible = false
+
+  function updateFloatingCta() {
+    if (!heroVisible && !footerVisible) {
+      floatingCta.classList.add('show')
+    } else {
+      floatingCta.classList.remove('show')
+    }
+  }
+
+  // ヒーローCTAが隠れたら表示
+  new IntersectionObserver(
+    ([entry]) => { heroVisible = entry.isIntersecting; updateFloatingCta() },
     { threshold: 0 }
-  )
-  observer.observe(heroCta)
+  ).observe(heroCta)
+
+  // フッターが見えたら非表示
+  new IntersectionObserver(
+    ([entry]) => { footerVisible = entry.isIntersecting; updateFloatingCta() },
+    { threshold: 0 }
+  ).observe(document.querySelector('footer'))
 
   // Scroll fade-in animation
   const fadeEls = document.querySelectorAll('.fade-in')
