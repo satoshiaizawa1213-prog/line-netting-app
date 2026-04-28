@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { Resend } from 'resend'
+import { pushLineMessages } from '../lib/line-notify'
 
 const contact = new Hono()
 
@@ -53,37 +53,30 @@ contact.post('/', async (c) => {
     return c.json({ error: 'お問い合わせ内容は2000文字以内で入力してください。' }, 400)
   }
 
-  const apiKey = process.env.RESEND_API_KEY
-  const toEmail = process.env.CONTACT_TO_EMAIL
-  if (!apiKey || !toEmail) {
-    console.error('[contact] RESEND_API_KEY or CONTACT_TO_EMAIL is not set')
-    return c.json({ error: 'メール送信設定が未完了です。しばらくお待ちください。' }, 503)
+  const ownerLineUserId = process.env.OWNER_LINE_USER_ID
+  if (!ownerLineUserId) {
+    console.error('[contact] OWNER_LINE_USER_ID is not set')
+    return c.json({ error: '通知設定が未完了です。しばらくお待ちください。' }, 503)
   }
 
-  const resend = new Resend(apiKey)
-  const fromEmail = process.env.RESEND_FROM_EMAIL ?? 'onboarding@resend.dev'
+  const lineMessage = [
+    '📬 お問い合わせが届きました',
+    '',
+    `👤 お名前: ${name.trim()}`,
+    `📧 メール: ${email.trim()}`,
+    '',
+    '💬 内容:',
+    message.trim(),
+  ].join('\n')
 
-  const { error } = await resend.emails.send({
-    from: fromEmail,
-    to: toEmail,
-    replyTo: email.trim(),
-    subject: `【すっきりワリカン】お問い合わせ: ${name.trim()}`,
-    text: [
-      `お名前: ${name.trim()}`,
-      `メールアドレス: ${email.trim()}`,
-      ``,
-      `--- お問い合わせ内容 ---`,
-      message.trim(),
-      ``,
-      `--- 送信情報 ---`,
-      `送信日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`,
-      `IP: ${ip}`,
-    ].join('\n'),
-  })
+  const results = await pushLineMessages(
+    [{ line_user_id: ownerLineUserId }],
+    lineMessage
+  )
 
-  if (error) {
-    console.error('[contact] Resend error:', error)
-    return c.json({ error: 'メールの送信に失敗しました。時間をおいてからお試しください。' }, 500)
+  if (!results[0]?.ok) {
+    console.error('[contact] LINE push failed:', results[0])
+    return c.json({ error: 'LINE通知の送信に失敗しました。時間をおいてからお試しください。' }, 500)
   }
 
   return c.json({ ok: true })
