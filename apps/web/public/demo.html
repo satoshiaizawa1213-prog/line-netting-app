@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>すっきりワリカン — 紹介動画デモ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #06C755;
+      --green-dark: #04a845;
+      --navy: #0f172a;
+      --navy2: #1e293b;
+      --white: #ffffff;
+      --gray: #f1f5f9;
+      --text: #1a1a2e;
+      --sub: #64748b;
+    }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      gap: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .phone-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── PHONE FRAME ── */
+    .phone {
+      width: 375px;
+      height: 812px;
+      background: var(--white);
+      border-radius: 44px;
+      overflow: hidden;
+      position: relative;
+      box-shadow:
+        0 0 0 2px #2a2a3e,
+        0 0 0 6px #111,
+        0 32px 80px rgba(0,0,0,0.6);
+    }
+
+    /* ── STATUS BAR ── */
+    .statusbar {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .statusbar.dark { color: #fff; }
+    .statusbar.light { color: #1a1a2e; }
+
+    /* ── SCENE BASE ── */
+    .scene {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .scene.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ════════════════════════════════
+       SCENE 1: OPENING
+    ════════════════════════════════ */
+    #s1 {
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 55%, #064e3b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .s1-badge {
+      background: rgba(6,199,85,0.15);
+      border: 1px solid rgba(6,199,85,0.4);
+      color: #4ade80;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.1em;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.6s ease 0.5s forwards;
+    }
+    .s1-icon {
+      font-size: 64px;
+      margin: 20px 0 12px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.9s forwards;
+    }
+    .s1-title {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.02em;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 1.2s forwards;
+    }
+    .s1-title span { color: var(--green); }
+    .s1-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      margin-top: 10px;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 1.5s forwards;
+    }
+    .s1-tagline {
+      margin-top: 40px;
+      font-size: 15px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      text-align: center;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 2.0s forwards;
+    }
+
+    /* ════════════════════════════════
+       SCENE 2: グループ参加
+    ════════════════════════════════ */
+    #s2 { background: #ebe5d8; } /* LINEチャット背景 */
+
+    .line-header {
+      height: 88px;
+      background: var(--white);
+      display: flex;
+      align-items: flex-end;
+      padding: 0 16px 12px;
+      gap: 12px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .line-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4ade80, #06C755);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .line-room-name { font-size: 15px; font-weight: 700; color: #1a1a2e; }
+    .line-room-count { font-size: 11px; color: var(--sub); }
+
+    .chat-area {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .bubble-left { align-self: flex-start; max-width: 75%; }
+    .bubble-right { align-self: flex-end; max-width: 75%; }
+    .bubble-name { font-size: 11px; color: var(--sub); margin-bottom: 4px; padding-left: 4px; }
+    .bubble-body {
+      background: var(--white);
+      border-radius: 0 14px 14px 14px;
+      padding: 10px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+    .bubble-right .bubble-body {
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px 0 14px 14px;
+    }
+    .invite-card {
+      background: var(--white);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .invite-card-header {
+      background: linear-gradient(135deg, #0f172a, #064e3b);
+      padding: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 0.06em;
+    }
+    .invite-card-body { padding: 12px; }
+    .invite-card-title { font-size: 14px; font-weight: 800; color: #1a1a2e; }
+    .invite-card-sub { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .invite-btn {
+      display: block;
+      margin-top: 10px;
+      background: var(--green);
+      color: #fff;
+      border-radius: 8px;
+      text-align: center;
+      padding: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tap-hint {
+      position: absolute;
+      right: 60px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      opacity: 0;
+      animation: fadeIn 0.4s ease 1.8s forwards;
+    }
+
+    .finger {
+      position: absolute;
+      font-size: 28px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 200;
+    }
+
+    /* ════════════════════════════════
+       SCENE 3: 支払い記録
+    ════════════════════════════════ */
+    #s3 { background: var(--gray); }
+
+    .app-header {
+      height: 88px;
+      background: linear-gradient(160deg, #0f172a, #1e293b);
+      display: flex;
+      align-items: flex-end;
+      padding: 0 16px 12px;
+      gap: 8px;
+    }
+    .app-header-back { color: var(--green); font-size: 22px; margin-right: 4px; }
+    .app-header-title { font-size: 16px; font-weight: 800; color: #fff; }
+
+    .form-container { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .form-card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .form-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+    .form-value { font-size: 16px; font-weight: 700; color: var(--text); }
+    .form-amount { font-size: 28px; font-weight: 900; color: var(--green); }
+
+    .split-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .split-row:last-child { border-bottom: none; }
+    .split-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .split-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+    .split-amount { font-size: 13px; font-weight: 700; color: var(--green); }
+
+    .submit-btn {
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 16px rgba(6,199,85,0.35);
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    /* ════════════════════════════════
+       SCENE 4: 承認フロー
+    ════════════════════════════════ */
+    #s4 { background: var(--gray); }
+
+    .notif-bar {
+      position: absolute;
+      top: 44px; left: 12px; right: 12px;
+      background: rgba(15,23,42,0.95);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    .notif-icon { font-size: 22px; }
+    .notif-text { flex: 1; }
+    .notif-title { font-size: 12px; font-weight: 700; color: #fff; }
+    .notif-body { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+    .approval-card {
+      background: var(--white);
+      margin: 16px;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      margin-top: 80px;
+    }
+    .approval-header {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      padding: 16px;
+      border-bottom: 1px solid #bbf7d0;
+    }
+    .approval-badge {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .approval-desc { font-size: 16px; font-weight: 800; color: var(--text); }
+    .approval-amount { font-size: 24px; font-weight: 900; color: var(--green); margin-top: 4px; }
+    .approval-body { padding: 16px; }
+    .approval-meta { font-size: 12px; color: var(--sub); display: flex; gap: 16px; }
+    .approval-btns {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 10px;
+      margin: 16px;
+    }
+    .btn-reject {
+      background: #f1f5f9;
+      color: var(--sub);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .btn-approve {
+      background: var(--green);
+      color: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(6,199,85,0.3);
+    }
+
+    .success-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(6,199,85,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      opacity: 0;
+      z-index: 300;
+    }
+    .success-icon { font-size: 64px; }
+    .success-text { font-size: 22px; font-weight: 900; color: #fff; }
+    .success-sub { font-size: 14px; color: rgba(255,255,255,0.8); }
+
+    /* ════════════════════════════════
+       SCENE 5: 精算 / ネッティング
+    ════════════════════════════════ */
+    #s5 { background: var(--gray); }
+
+    .netting-card {
+      background: var(--white);
+      margin: 16px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .netting-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .netting-title { font-size: 18px; font-weight: 900; color: var(--text); margin-bottom: 16px; }
+
+    .netting-compare {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+    .netting-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .netting-box-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .netting-box.before .netting-box-label { color: #ef4444; }
+    .netting-box.after .netting-box-label { color: var(--green); }
+    .netting-arrow-count {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .netting-box.before .netting-arrow-count { color: #ef4444; }
+    .netting-box.after .netting-arrow-count { color: var(--green); }
+    .netting-arrow-sub { font-size: 11px; color: var(--sub); margin-top: 4px; }
+
+    .netting-vs {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--sub);
+      text-align: center;
+    }
+
+    .netting-save {
+      margin-top: 16px;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #15803d;
+      opacity: 0;
+    }
+
+    .netting-diagram {
+      margin: 16px 16px 0;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    .netting-diagram-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    /* ════════════════════════════════
+       SCENE 6: 完了
+    ════════════════════════════════ */
+    #s6 {
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 55%, #064e3b 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .s6-check {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 0 16px rgba(6,199,85,0.15);
+      opacity: 0;
+      transform: scale(0.5);
+      animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.5s forwards;
+    }
+    .s6-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 1.0s forwards;
+    }
+    .s6-sub {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 8px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 1.3s forwards;
+    }
+    .s6-stats {
+      margin-top: 36px;
+      display: flex;
+      gap: 24px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 1.6s forwards;
+    }
+    .s6-stat {
+      text-align: center;
+    }
+    .s6-stat-val { font-size: 28px; font-weight: 900; color: var(--green); }
+    .s6-stat-label { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+    .s6-logo {
+      margin-top: 48px;
+      opacity: 0;
+      animation: fadeUp 0.5s ease 2.0s forwards;
+      text-align: center;
+    }
+    .s6-logo-name { font-size: 20px; font-weight: 900; color: var(--green); letter-spacing: 0.04em; }
+    .s6-logo-tag { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      display: flex;
+      gap: 6px;
+    }
+    .progress-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+    }
+    .progress-dot.active {
+      background: var(--green);
+      width: 20px;
+      border-radius: 3px;
+    }
+
+    /* ── CONTROLS ── */
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+    .ctrl-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s;
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.25); }
+    .ctrl-btn.primary { background: var(--green); border-color: var(--green); }
+
+    /* ── SCENE TIMER BAR ── */
+    .timer-bar {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: var(--green);
+      width: 0%;
+      z-index: 500;
+      transition: none;
+    }
+
+    /* ── KEYFRAMES ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes timerFill {
+      from { width: 0%; }
+      to   { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PHONE FRAME -->
+<div class="phone-wrapper"><div class="phone">
+
+  <!-- ══════ SCENE 1: OPENING ══════ -->
+  <div class="scene active" id="s1">
+    <div class="statusbar dark">
+      <span>9:41</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+      <div class="s1-badge">LINE MINI APP</div>
+      <div class="s1-icon">🤝</div>
+      <div class="s1-title">すっきり<span>ワリカン</span></div>
+      <div class="s1-sub">グループ割り勘・精算アプリ</div>
+      <div class="s1-tagline">旅行・飲み会・日々の立替えを<br>LINEで記録して、かんたん精算。</div>
+    </div>
+    <div class="timer-bar" id="t1"></div>
+  </div>
+
+  <!-- ══════ SCENE 2: グループ参加 ══════ -->
+  <div class="scene" id="s2">
+    <div class="statusbar light">
+      <span>9:41</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <div class="line-header">
+      <div class="line-avatar">🏕️</div>
+      <div>
+        <div class="line-room-name">北海道旅行メンバー</div>
+        <div class="line-room-count">4人</div>
+      </div>
+    </div>
+    <div class="chat-area" style="padding-top:12px;">
+      <div class="bubble-left" style="opacity:0;animation:fadeIn 0.4s ease 0.3s forwards">
+        <div class="bubble-name">たろう</div>
+        <div class="bubble-body">旅行お疲れ様！精算アプリ使おう👇</div>
+      </div>
+      <div class="bubble-left" style="opacity:0;animation:fadeIn 0.4s ease 0.8s forwards">
+        <div class="invite-card">
+          <div class="invite-card-header">🤝 すっきりワリカン</div>
+          <div class="invite-card-body">
+            <div class="invite-card-title">北海道旅行メンバー</div>
+            <div class="invite-card-sub">グループに参加してください</div>
+            <div class="invite-btn" id="invite-btn">グループに参加する →</div>
+          </div>
+        </div>
+      </div>
+      <div class="bubble-right" style="opacity:0;animation:fadeIn 0.4s ease 2.0s forwards">
+        <div class="bubble-body">参加した！よろしく😄</div>
+      </div>
+      <div class="bubble-left" style="opacity:0;animation:fadeIn 0.4s ease 2.5s forwards">
+        <div class="bubble-body">じゃあ早速入力してって〜</div>
+      </div>
+    </div>
+    <!-- finger tap animation -->
+    <div class="finger" id="finger2" style="bottom:360px;right:100px;animation:fadeIn 0.3s ease 1.4s forwards,fingerTap 0.4s ease 1.7s">👆</div>
+    <div class="timer-bar" id="t2"></div>
+  </div>
+
+  <!-- ══════ SCENE 3: 支払い記録 ══════ -->
+  <div class="scene" id="s3">
+    <div class="statusbar dark">
+      <span>9:41</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <div class="app-header">
+      <div class="app-header-back">‹</div>
+      <div class="app-header-title">支払いを報告</div>
+    </div>
+    <div class="form-container">
+      <div class="form-card" style="opacity:0;animation:fadeUp 0.4s ease 0.2s forwards">
+        <div class="form-label">用途</div>
+        <div class="form-value">🍺 夕食・飲み代</div>
+      </div>
+      <div class="form-card" style="opacity:0;animation:fadeUp 0.4s ease 0.5s forwards">
+        <div class="form-label">金額</div>
+        <div class="form-amount">¥18,000</div>
+      </div>
+      <div class="form-card" style="opacity:0;animation:fadeUp 0.4s ease 0.8s forwards">
+        <div class="form-label">立替者</div>
+        <div class="form-value">👤 たろう（自分）</div>
+      </div>
+      <div class="form-card" style="opacity:0;animation:fadeUp 0.4s ease 1.1s forwards">
+        <div class="form-label">均等割り — 4名</div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#fef3c7">👤</div>
+          <div class="split-name">たろう</div>
+          <div class="split-amount">¥4,500</div>
+        </div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#dbeafe">👤</div>
+          <div class="split-name">はなこ</div>
+          <div class="split-amount">¥4,500</div>
+        </div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#fce7f3">👤</div>
+          <div class="split-name">じろう</div>
+          <div class="split-amount">¥4,500</div>
+        </div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#dcfce7">👤</div>
+          <div class="split-name">さぶろう</div>
+          <div class="split-amount">¥4,500</div>
+        </div>
+      </div>
+      <div class="submit-btn" style="animation:fadeUp 0.4s ease 1.6s forwards">
+        📤 送信する
+      </div>
+    </div>
+    <div class="timer-bar" id="t3"></div>
+  </div>
+
+  <!-- ══════ SCENE 4: 承認フロー ══════ -->
+  <div class="scene" id="s4">
+    <div class="statusbar light">
+      <span>9:42</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <!-- notification -->
+    <div class="notif-bar" id="notif4" style="animation:slideDown 0.5s ease 0.4s forwards">
+      <div class="notif-icon">🔔</div>
+      <div class="notif-text">
+        <div class="notif-title">すっきりワリカン</div>
+        <div class="notif-body">たろうさんが支払いを報告しました</div>
+      </div>
+    </div>
+    <!-- App UI -->
+    <div style="background:var(--gray);height:100%;padding-top:44px;">
+      <div class="app-header" style="margin-top:0">
+        <div class="app-header-title">承認リクエスト</div>
+      </div>
+      <div class="approval-card">
+        <div class="approval-header">
+          <div class="approval-badge">承認待ち</div>
+          <div class="approval-desc">🍺 夕食・飲み代</div>
+          <div class="approval-amount">¥18,000</div>
+        </div>
+        <div class="approval-body">
+          <div class="approval-meta">
+            <span>👤 たろうが立替</span>
+            <span>📅 均等割り ÷4</span>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--sub);">
+            あなたの負担額: <strong style="color:var(--text);font-size:15px;">¥4,500</strong>
+          </div>
+        </div>
+      </div>
+      <div class="approval-btns">
+        <div class="btn-reject">差戻し</div>
+        <div class="btn-approve" id="approve-btn">✓ 承認する</div>
+      </div>
+    </div>
+    <!-- success overlay -->
+    <div class="success-overlay" id="success4">
+      <div class="success-icon">✅</div>
+      <div class="success-text">承認完了！</div>
+      <div class="success-sub">たろうさんに通知しました</div>
+    </div>
+    <div class="timer-bar" id="t4"></div>
+  </div>
+
+  <!-- ══════ SCENE 5: 精算 / ネッティング ══════ -->
+  <div class="scene" id="s5">
+    <div class="statusbar light">
+      <span>9:43</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <div class="app-header">
+      <div class="app-header-title">精算する</div>
+    </div>
+    <div style="background:var(--gray);padding-bottom:16px;">
+      <div class="netting-card" style="opacity:0;animation:fadeUp 0.5s ease 0.3s forwards">
+        <div class="netting-label">マルチラテラルネッティング</div>
+        <div class="netting-title">振込み回数を最小化 ✨</div>
+        <div class="netting-compare">
+          <div class="netting-box before">
+            <div class="netting-box-label">BEFORE</div>
+            <div class="netting-arrow-count">6回</div>
+            <div class="netting-arrow-sub">の振込み</div>
+          </div>
+          <div class="netting-vs">→</div>
+          <div class="netting-box after">
+            <div class="netting-box-label">AFTER</div>
+            <div class="netting-arrow-count">2回</div>
+            <div class="netting-arrow-sub">の振込み</div>
+          </div>
+        </div>
+        <div class="netting-save" id="netting-save">
+          🎉 振込みが 4回 減りました！
+        </div>
+      </div>
+
+      <!-- 振込みリスト -->
+      <div style="background:var(--white);margin:0 16px;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,0.08);opacity:0;animation:fadeUp 0.5s ease 1.0s forwards">
+        <div class="form-label" style="margin-bottom:12px">振込み先リスト</div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#fce7f3">👤</div>
+          <div class="split-name">じろう → たろう</div>
+          <div class="split-amount">¥3,200</div>
+        </div>
+        <div class="split-row">
+          <div class="split-avatar" style="background:#dbeafe">👤</div>
+          <div class="split-name">さぶろう → たろう</div>
+          <div class="split-amount">¥4,100</div>
+        </div>
+      </div>
+
+      <div style="margin:12px 16px 0;background:var(--green);border-radius:14px;padding:16px;text-align:center;color:#fff;font-weight:800;font-size:15px;box-shadow:0 4px 16px rgba(6,199,85,0.35);opacity:0;animation:fadeUp 0.5s ease 1.5s forwards">
+        🤝 精算を提案する
+      </div>
+    </div>
+    <div class="timer-bar" id="t5"></div>
+  </div>
+
+  <!-- ══════ SCENE 6: 完了 ══════ -->
+  <div class="scene" id="s6">
+    <div class="statusbar dark">
+      <span>9:44</span>
+      <span>●●● 📶 🔋</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;">
+      <div class="s6-check">✓</div>
+      <div class="s6-title">精算完了！</div>
+      <div class="s6-sub">全員の承認が揃いました</div>
+      <div class="s6-stats">
+        <div class="s6-stat">
+          <div class="s6-stat-val">¥18,000</div>
+          <div class="s6-stat-label">精算金額</div>
+        </div>
+        <div class="s6-stat">
+          <div class="s6-stat-val">2回</div>
+          <div class="s6-stat-label">振込み回数</div>
+        </div>
+        <div class="s6-stat">
+          <div class="s6-stat-val">4名</div>
+          <div class="s6-stat-label">メンバー</div>
+        </div>
+      </div>
+      <div class="s6-logo">
+        <div class="s6-logo-name">🤝 すっきりワリカン</div>
+        <div class="s6-logo-tag">グループ割り勘を、かんたん精算</div>
+      </div>
+    </div>
+    <div class="timer-bar" id="t6"></div>
+  </div>
+
+</div></div><!-- /phone /phone-wrapper -->
+
+<!-- PROGRESS DOTS -->
+<div class="progress-bar">
+  <div class="progress-dot active" id="d0"></div>
+  <div class="progress-dot" id="d1"></div>
+  <div class="progress-dot" id="d2"></div>
+  <div class="progress-dot" id="d3"></div>
+  <div class="progress-dot" id="d4"></div>
+  <div class="progress-dot" id="d5"></div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <button class="ctrl-btn" id="btn-prev">‹ 前へ</button>
+  <button class="ctrl-btn" id="btn-toggle">⏸ 一時停止</button>
+  <button class="ctrl-btn primary" id="btn-next">次へ ›</button>
+</div>
+<div style="color:rgba(255,255,255,0.3);font-size:11px;text-align:center;">
+  クリックで操作 / 自動再生対応 — 録画してご使用ください
+</div>
+
+<style>
+  @keyframes fingerTap {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(0.8) translateY(4px); }
+    100% { transform: scale(1); }
+  }
+</style>
+
+<script>
+  const SCENES = ['s1','s2','s3','s4','s5','s6']
+  const DURATIONS = [4000, 5000, 6000, 6000, 6500, 5000] // ms per scene
+  let current = 0
+  let paused = false
+  let timer = null
+  let sceneTimer = null  // シーン内タイムアウト（オーバーレイ等）
+  let timerStart = null
+  let timerDuration = 0
+
+  function resetSceneState() {
+    // 前シーンのタイムアウトをキャンセル
+    if (sceneTimer) { clearTimeout(sceneTimer); sceneTimer = null }
+    // オーバーレイをリセット
+    const ov = document.getElementById('success4')
+    if (ov) { ov.style.opacity = '0'; ov.style.animation = '' }
+    // ネッティング保存バッジをリセット
+    const ns = document.getElementById('netting-save')
+    if (ns) { ns.style.opacity = '0'; ns.style.animation = '' }
+  }
+
+  function showScene(idx) {
+    resetSceneState()
+
+    SCENES.forEach((id, i) => {
+      const el = document.getElementById(id)
+      el.classList.toggle('active', i === idx)
+    })
+    document.querySelectorAll('.progress-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx)
+    })
+    current = idx
+
+    // Reset & animate timer bar
+    const bar = document.getElementById('t' + (idx+1))
+    if (bar) {
+      bar.style.transition = 'none'
+      bar.style.width = '0%'
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          bar.style.transition = `width ${DURATIONS[idx]}ms linear`
+          bar.style.width = '100%'
+        })
+      })
+    }
+
+    // Scene-specific triggers
+    if (idx === 3) {
+      sceneTimer = setTimeout(() => {
+        if (current === 3) {
+          const ov = document.getElementById('success4')
+          ov.style.animation = 'fadeIn 0.4s ease forwards'
+          ov.style.opacity = '1'
+        }
+      }, 3500)
+    }
+    if (idx === 4) {
+      sceneTimer = setTimeout(() => {
+        if (current === 4) {
+          const el = document.getElementById('netting-save')
+          el.style.animation = 'fadeIn 0.4s ease forwards'
+          el.style.opacity = '1'
+        }
+      }, 800)
+    }
+
+    scheduleNext()
+  }
+
+  function scheduleNext() {
+    clearTimeout(timer)
+    if (paused) return
+    timerDuration = DURATIONS[current]
+    timerStart = Date.now()
+    timer = setTimeout(() => {
+      const next = (current + 1) % SCENES.length
+      showScene(next)
+    }, timerDuration)
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => {
+    clearTimeout(timer)
+    showScene((current + 1) % SCENES.length)
+  })
+
+  document.getElementById('btn-prev').addEventListener('click', () => {
+    clearTimeout(timer)
+    showScene((current - 1 + SCENES.length) % SCENES.length)
+  })
+
+  document.getElementById('btn-toggle').addEventListener('click', () => {
+    paused = !paused
+    document.getElementById('btn-toggle').textContent = paused ? '▶ 再生' : '⏸ 一時停止'
+    if (paused) {
+      clearTimeout(timer)
+      // Pause timer bar
+      const bar = document.getElementById('t' + (current+1))
+      if (bar) {
+        const computedWidth = getComputedStyle(bar).width
+        bar.style.transition = 'none'
+        bar.style.width = computedWidth
+      }
+    } else {
+      scheduleNext()
+      // Resume timer bar
+      const bar = document.getElementById('t' + (current+1))
+      if (bar) {
+        const remaining = DURATIONS[current] - (Date.now() - timerStart)
+        bar.style.transition = `width ${Math.max(remaining,0)}ms linear`
+        bar.style.width = '100%'
+      }
+    }
+  })
+
+  // ビューポートに合わせてフォンをスケール
+  function fitPhone() {
+    const phone = document.querySelector('.phone')
+    const controlsH = 120 // controls + progress + hint + gaps
+    const availH = window.innerHeight - controlsH
+    const availW = window.innerWidth - 40
+    const scaleH = availH / 812
+    const scaleW = availW / 375
+    const scale = Math.min(1, scaleH, scaleW)
+    phone.style.transform = `scale(${scale})`
+    phone.style.margin = `${-(812 * (1 - scale) / 2)}px ${-(375 * (1 - scale) / 2)}px`
+  }
+  window.addEventListener('resize', fitPhone)
+  fitPhone()
+
+  // Start
+  showScene(0)
+</script>
+</body>
+</html>
