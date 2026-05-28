@@ -4,7 +4,8 @@ export type ApprovalAction = 'approved' | 'rejected'
 
 export interface User {
   id: string
-  line_user_id: string
+  /** line_user_id は /me のみで返る。他のエンドポイントでは外部露出しない */
+  line_user_id?: string
   display_name: string
   picture_url: string | null
   weight?: number
