@@ -48,6 +48,15 @@ groups.post('/', async (c) => {
   if (existing) {
     groupId = existing.id
     joinToken = existing.join_token
+
+    // 既存グループへの参加はメンバーのみ許可（不正参加防止）
+    const isMember = await assertMember(groupId, user.id)
+    if (!isMember) {
+      return c.json(
+        { error: 'このグループに参加するには招待リンクが必要です。グループメンバーに招待リンクを共有してもらってください。' },
+        403
+      )
+    }
   } else {
     joinToken = generateJoinToken()
     const { data: created, error } = await db
@@ -258,7 +267,7 @@ groups.get('/:groupId/members', async (c) => {
 
   const { data: users, error: userError } = await db
     .from('users')
-    .select('id, line_user_id, display_name, picture_url')
+    .select('id, display_name, picture_url')  // line_user_id は外部露出しない
     .in('id', userIds)
 
   if (userError) return c.json({ error: 'DB error' }, 500)

@@ -207,9 +207,34 @@ async function bootstrap() {
       dbGroupId = savedGroupId
     } else if (ctx) {
       // 初回 & LINEグループコンテキストあり
-      const groupData = await ensureGroup(ctx.groupId)
-      dbGroupId = groupData.id
-      localStorage.setItem('groupId', dbGroupId)
+      try {
+        const groupData = await ensureGroup(ctx.groupId)
+        dbGroupId = groupData.id
+        localStorage.setItem('groupId', dbGroupId)
+      } catch (e) {
+        // グループは存在するがメンバーでない（招待リンクが必要）
+        if (e instanceof Error && e.message.includes('招待リンク')) {
+          root.innerHTML = `
+            <div style="min-height:100dvh;background:#F3F4F6;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;box-sizing:border-box;">
+              <div style="width:100%;max-width:360px;text-align:center;">
+                <div style="font-size:3rem;margin-bottom:16px;">🔗</div>
+                <h1 style="font-size:1.1rem;font-weight:800;color:#111827;margin:0 0 12px;">招待リンクが必要です</h1>
+                <p style="color:#6B7280;font-size:0.85rem;line-height:1.6;margin:0 0 24px;">
+                  このグループにはすでにメンバーがいます。<br>
+                  グループメンバーに<strong>招待リンク</strong>を共有してもらい、<br>
+                  そのリンクからアプリを開いてください。
+                </p>
+                <div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 12px rgba(0,0,0,.07);font-size:0.82rem;color:#6B7280;line-height:1.6;">
+                  💡 招待リンクは、すでに参加しているメンバーのアプリ内<br>「メンバー管理」→「招待リンクをコピー」から取得できます。
+                </div>
+              </div>
+            </div>
+            <style>body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic UI',sans-serif;margin:0;max-width:480px;margin:0 auto;background:#F3F4F6;}</style>
+          `
+          return
+        }
+        throw e
+      }
     } else {
       // 初回かつグループ未設定 → グループ作成UI
       dbGroupId = await showGroupSetup()
