@@ -16,10 +16,15 @@
       --gray: #f1f5f9;
       --text: #1a1a2e;
       --sub: #64748b;
+      /* LP と統一: ダーク背景 + ネオングロー */
+      --bg: #0A0E0D;
+      --accent-soft: color-mix(in srgb, #06C755 14%, transparent);
     }
 
     body {
-      background: #1a1a2e;
+      background:
+        radial-gradient(70% 40% at 50% -5%, var(--accent-soft), transparent 70%),
+        var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -29,7 +34,34 @@
       gap: 16px;
       font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
       -webkit-font-smoothing: antialiased;
+      position: relative;
     }
+
+    /* ── LP に戻るリンク（左上） ── */
+    .demo-back {
+      position: fixed;
+      top: 16px; left: 16px;
+      z-index: 200;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px 8px 10px;
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .demo-back .mark {
+      width: 22px; height: 22px; border-radius: 7px;
+      display: grid; place-items: center;
+      background: var(--green); color: #04160C;
+      font-size: 12px; font-weight: 900;
+      box-shadow: 0 0 12px color-mix(in srgb, var(--green) 50%, transparent);
+    }
+    .demo-back:hover { color: #fff; border-color: color-mix(in srgb, var(--green) 50%, transparent); }
 
     .phone-wrapper {
       display: flex;
@@ -604,6 +636,8 @@
   </style>
 </head>
 <body>
+
+<a class="demo-back" href="/lp.html"><span class="mark">ワ</span>← LP に戻る</a>
 
 <!-- PHONE FRAME -->
 <div class="phone-wrapper"><div class="phone">
