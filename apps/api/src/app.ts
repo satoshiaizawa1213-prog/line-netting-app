@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { authMiddleware } from './lib/auth'
+import { db } from './lib/db'
 import { pushLineMessages } from './lib/line-notify'
 import groups from './routes/groups'
 import payments from './routes/payments'
@@ -26,6 +27,36 @@ app.use('*', cors({
 
 app.get('/health', (c) => c.json({ ok: true }))
 app.post('/ping', (c) => c.json({ ok: true, ts: Date.now() }))
+
+/**
+ * Vercel Cron 用キープアライブ
+ * Supabase 無料プランは7日間アクセスがないと自動 Paused になるため、
+ * 日次で軽い SELECT を打って DB を起こしておく。
+ *
+ * Vercel Cron は自動的に Authorization: Bearer <CRON_SECRET> を付与するので、
+ * 環境変数 CRON_SECRET が設定されている場合はそれで保護する。
+ */
+app.get('/cron/keepalive', async (c) => {
+  const cronSecret = process.env.CRON_SECRET
+  if (cronSecret) {
+    const auth = c.req.header('authorization') ?? ''
+    if (auth !== `Bearer ${cronSecret}`) {
+      return c.json({ error: 'Unauthorized' }, 401)
+    }
+  }
+
+  const started = Date.now()
+  const { count, error } = await db
+    .from('users')
+    .select('id', { count: 'exact', head: true })
+
+  if (error) {
+    console.error('[keepalive] DB error:', error)
+    return c.json({ ok: false, error: error.message }, 503)
+  }
+
+  return c.json({ ok: true, users_count: count, elapsed_ms: Date.now() - started })
+})
 
 /** 現在ログイン中のユーザー情報を返す */
 app.get('/me', authMiddleware, (c) => c.json(c.get('user')))
