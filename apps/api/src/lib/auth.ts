@@ -105,7 +105,11 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
     return c.json({ error: `Auth DB timeout: ${(e as Error).message}` }, 503)
   }
 
-  if (dbError || !data) return c.json({ error: 'DB error' }, 500)
+  if (dbError || !data) {
+    console.error('[auth] DB upsert failed:', JSON.stringify(dbError), 'data:', JSON.stringify(data))
+    console.error('[auth] SUPABASE_URL set:', !!process.env.SUPABASE_URL, 'KEY set:', !!process.env.SUPABASE_SERVICE_ROLE_KEY)
+    return c.json({ error: 'DB error', detail: (dbError as { message?: string })?.message ?? 'unknown' }, 500)
+  }
 
   const user = data as AuthUser
 
