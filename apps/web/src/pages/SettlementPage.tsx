@@ -92,11 +92,11 @@ export default function SettlementPage() {
 
       {!proposed && <>
       {/* 全員合意の説明 */}
-      <div className="card" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #bbf7d0', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div className="card" style={{ background: 'var(--color-primary-light)', border: '1px solid rgba(6,199,85,.32)', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <span style={{ fontSize: '1.4rem', flexShrink: 0 }}>🤝</span>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#15803d', marginBottom: 4 }}>全員合意制</div>
-          <div style={{ fontSize: '0.82rem', color: '#166534', lineHeight: 1.6 }}>
+          <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--color-primary)', marginBottom: 4 }}>全員合意制</div>
+          <div style={{ fontSize: '0.82rem', color: 'var(--color-text)', lineHeight: 1.6 }}>
             提案後、グループの全メンバーが承認すると精算が実行されます。
             LINEで承認リクエストが通知されます。
           </div>
@@ -105,9 +105,9 @@ export default function SettlementPage() {
 
       {/* 既存の提案がある場合 */}
       {hasPending && (
-        <div className="card" style={{ background: '#fffbeb', border: '1.5px solid #fbbf24' }}>
-          <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 4 }}>⚠️ 承認待ちの提案があります</div>
-          <p style={{ fontSize: '0.83rem', color: '#78350f', margin: 0 }}>
+        <div className="card" style={{ background: 'rgba(251,191,36,.10)', border: '1px solid rgba(251,191,36,.36)' }}>
+          <div style={{ fontWeight: 800, color: '#fbbf24', marginBottom: 4 }}>⚠️ 承認待ちの提案があります</div>
+          <p style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', margin: 0 }}>
             既に精算提案が進行中です。新しい提案はできません。<br />
             ホーム画面から既存の提案を確認してください。
           </p>
@@ -158,9 +158,9 @@ export default function SettlementPage() {
           </div>
 
           {pendingCount > 0 && (
-            <div className="card" style={{ background: '#fffbeb', border: '1.5px solid #fbbf24' }}>
-              <div style={{ fontWeight: 600, color: '#92400e', marginBottom: 4 }}>⚠️ 承認待ちの支払いがあります</div>
-              <p style={{ fontSize: '0.83rem', color: '#78350f', margin: 0 }}>
+            <div className="card" style={{ background: 'rgba(251,191,36,.10)', border: '1px solid rgba(251,191,36,.36)' }}>
+              <div style={{ fontWeight: 800, color: '#fbbf24', marginBottom: 4 }}>⚠️ 承認待ちの支払いがあります</div>
+              <p style={{ fontSize: '0.83rem', color: 'var(--color-text-sub)', margin: 0 }}>
                 承認待ちが {pendingCount} 件あります。承認されていない支払いは精算対象外です。
               </p>
             </div>

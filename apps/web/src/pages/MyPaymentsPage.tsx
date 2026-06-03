@@ -86,7 +86,7 @@ export default function MyPaymentsPage() {
               flex: 1, padding: '9px 0', fontSize: '0.88rem', fontWeight: 700,
               borderRadius: 8, border: 'none',
               background: tab === key ? 'var(--color-primary)' : 'transparent',
-              color: tab === key ? '#fff' : 'var(--color-text-sub)',
+              color: tab === key ? 'var(--color-primary-ink)' : 'var(--color-text-sub)',
               transition: 'all 0.15s',
             }}
           >
@@ -225,7 +225,7 @@ function PayGroupCard({
         {user?.picture_url ? (
           <img src={user.picture_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #fee2e2, #fecaca)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💸</div>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255, 71, 87, 0.18)', border: '1px solid rgba(255, 71, 87, 0.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💸</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)' }}>
@@ -274,7 +274,7 @@ function PayGroupCard({
             disabled={isPending}
             style={{
               padding: '6px 16px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: tasks[0].paid ? 'var(--color-bg)' : 'var(--color-danger)',
+              background: tasks[0].paid ? 'var(--color-surface-2)' : 'var(--color-danger)',
               color: tasks[0].paid ? 'var(--color-text-sub)' : '#fff',
               transition: 'all 0.15s',
             }}
@@ -308,7 +308,7 @@ function ReceiveGroupCard({
         {user?.picture_url ? (
           <img src={user.picture_url} alt="" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #e8f9ef, #c7f3da)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💰</div>
+          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--color-primary-light)', border: '1px solid rgba(6,199,85,.32)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>💰</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--color-text)' }}>
@@ -356,8 +356,8 @@ function ReceiveGroupCard({
             disabled={isPending}
             style={{
               padding: '6px 16px', fontSize: '0.8rem', fontWeight: 700, borderRadius: 999, border: 'none', cursor: 'pointer',
-              background: tasks[0].received ? 'var(--color-bg)' : 'var(--color-primary)',
-              color: tasks[0].received ? 'var(--color-text-sub)' : '#fff',
+              background: tasks[0].received ? 'var(--color-surface-2)' : 'var(--color-primary)',
+              color: tasks[0].received ? 'var(--color-text-sub)' : 'var(--color-primary-ink)',
               transition: 'all 0.15s',
             }}
           >

@@ -107,7 +107,7 @@ export default function ProposalPage() {
               {new Date(proposal.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
-          <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 8, padding: '4px 12px', fontSize: '0.82rem', fontWeight: 700 }}>
+          <span style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)', border: '1px solid rgba(6,199,85,.32)', borderRadius: 8, padding: '4px 12px', fontSize: '0.82rem', fontWeight: 800 }}>
             {METHOD_LABEL[proposal.method]}
           </span>
         </div>
@@ -120,11 +120,11 @@ export default function ProposalPage() {
               {proposal.vote_count} / {proposal.total_members} 人
             </span>
           </div>
-          <div style={{ height: 8, background: 'var(--color-border)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ height: 8, background: 'var(--color-surface-2)', borderRadius: 4, overflow: 'hidden' }}>
             <div style={{
               height: '100%',
               borderRadius: 4,
-              background: 'linear-gradient(90deg, #06C755, #04b34a)',
+              background: 'var(--color-primary)',
               width: `${(proposal.vote_count / proposal.total_members) * 100}%`,
               transition: 'width 0.4s ease',
             }} />
@@ -139,19 +139,19 @@ export default function ProposalPage() {
 
       {/* 自分の承認状態 */}
       {proposal.my_vote ? (
-        <div className="card" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="card" style={{ background: 'var(--color-primary-light)', border: '1px solid rgba(6,199,85,.32)', display: 'flex', gap: 10, alignItems: 'center' }}>
           <span style={{ fontSize: '1.2rem' }}>✅</span>
           <div>
-            <div style={{ fontWeight: 600, color: '#15803d', fontSize: '0.9rem' }}>承認済み</div>
-            <div style={{ fontSize: '0.8rem', color: '#166534' }}>他のメンバーの承認を待っています</div>
+            <div style={{ fontWeight: 800, color: 'var(--color-primary)', fontSize: '0.9rem' }}>承認済み</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)' }}>他のメンバーの承認を待っています</div>
           </div>
         </div>
       ) : (
-        <div className="card" style={{ background: '#fffbeb', border: '1px solid #fbbf24', display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div className="card" style={{ background: 'rgba(251,191,36,.10)', border: '1px solid rgba(251,191,36,.36)', display: 'flex', gap: 10, alignItems: 'center' }}>
           <span style={{ fontSize: '1.2rem' }}>⏳</span>
           <div>
-            <div style={{ fontWeight: 600, color: '#92400e', fontSize: '0.9rem' }}>未承認</div>
-            <div style={{ fontSize: '0.8rem', color: '#78350f' }}>あなたの承認が必要です</div>
+            <div style={{ fontWeight: 800, color: '#fbbf24', fontSize: '0.9rem' }}>未承認</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-sub)' }}>あなたの承認が必要です</div>
           </div>
         </div>
       )}

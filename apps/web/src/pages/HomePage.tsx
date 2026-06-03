@@ -137,44 +137,48 @@ export default function HomePage() {
       )}
 
       {/* 承認待ちの精算提案バナー */}
-      {proposals.map((proposal) => (
-        <div
-          key={proposal.id}
-          onClick={() => navigate(`/settlements/proposals/${proposal.id}`)}
-          style={{
-            background: proposal.my_vote
-              ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)'
-              : 'linear-gradient(135deg, #fffbeb, #fef3c7)',
-            border: `1.5px solid ${proposal.my_vote ? '#86efac' : '#fbbf24'}`,
-            borderRadius: 'var(--radius)',
-            padding: '14px 16px',
-            cursor: 'pointer',
-            display: 'flex',
-            gap: 12,
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{proposal.my_vote ? '✅' : '🤝'}</span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', color: proposal.my_vote ? '#15803d' : '#92400e' }}>
-              {proposal.my_vote ? '精算提案を承認済み' : '精算の承認が必要です'}
+      {proposals.map((proposal) => {
+        const isApproved = proposal.my_vote
+        const accent = isApproved ? 'var(--color-primary)' : '#fbbf24'
+        const accentSoft = isApproved ? 'rgba(6,199,85,.10)' : 'rgba(251,191,36,.10)'
+        const accentLine = isApproved ? 'rgba(6,199,85,.32)' : 'rgba(251,191,36,.32)'
+        return (
+          <div
+            key={proposal.id}
+            onClick={() => navigate(`/settlements/proposals/${proposal.id}`)}
+            style={{
+              background: accentSoft,
+              border: `1px solid ${accentLine}`,
+              borderRadius: 'var(--radius)',
+              padding: '14px 16px',
+              cursor: 'pointer',
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center',
+            }}
+          >
+            <span style={{ fontSize: '1.5rem', flexShrink: 0 }}>{isApproved ? '✅' : '🤝'}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--color-text)' }}>
+                {isApproved ? '精算提案を承認済み' : '精算の承認が必要です'}
+              </div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-sub)', marginTop: 2 }}>
+                {proposal.proposed_by_user?.display_name}さんの提案 ·
+                承認 {proposal.vote_count}/{proposal.total_members} 人
+              </div>
+              {/* 進捗バー */}
+              <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%', borderRadius: 2,
+                  background: accent,
+                  width: `${(proposal.vote_count / proposal.total_members) * 100}%`,
+                }} />
+              </div>
             </div>
-            <div style={{ fontSize: '0.78rem', color: proposal.my_vote ? '#166534' : '#78350f', marginTop: 2 }}>
-              {proposal.proposed_by_user?.display_name}さんの提案 ·
-              承認 {proposal.vote_count}/{proposal.total_members} 人
-            </div>
-            {/* 進捗バー */}
-            <div style={{ height: 4, background: 'rgba(0,0,0,0.1)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: 2,
-                background: proposal.my_vote ? '#22c55e' : '#f59e0b',
-                width: `${(proposal.vote_count / proposal.total_members) * 100}%`,
-              }} />
-            </div>
+            <span style={{ fontSize: '0.8rem', color: accent, flexShrink: 0 }}>→</span>
           </div>
-          <span style={{ fontSize: '0.8rem', color: proposal.my_vote ? '#15803d' : '#92400e', flexShrink: 0 }}>→</span>
-        </div>
-      ))}
+        )
+      })}
 
       {/* クイックアクション */}
       <div className="quick-actions">
@@ -224,18 +228,18 @@ export default function HomePage() {
       {!paymentsLoading && myPending.length > 0 && (
         <section>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div className="section-title" style={{ marginBottom: 0, color: '#C2410C' }}>承認が必要 ({myPending.length})</div>
+            <div className="section-title" style={{ marginBottom: 0, color: '#fdba74' }}>承認が必要 ({myPending.length})</div>
             {myPending.length > 1 && (
               <button
                 onClick={() => bulkMutation.mutate()}
                 disabled={bulkMutation.isPending || bulkDone}
                 style={{
-                  width: 'auto', padding: '5px 14px', fontSize: '0.78rem', fontWeight: 700,
-                  background: bulkDone ? 'var(--color-primary)' : '#fff',
-                  color: bulkDone ? '#fff' : 'var(--color-primary)',
+                  width: 'auto', padding: '5px 14px', fontSize: '0.78rem', fontWeight: 800,
+                  background: bulkDone ? 'var(--color-primary)' : 'transparent',
+                  color: bulkDone ? 'var(--color-primary-ink)' : 'var(--color-primary)',
                   border: '1.5px solid var(--color-primary)',
                   borderRadius: 999,
-                  boxShadow: bulkDone ? '0 2px 8px rgba(6,199,85,0.3)' : 'none',
+                  boxShadow: bulkDone ? 'var(--shadow-glow)' : 'none',
                   transition: 'all 0.2s',
                 }}
               >

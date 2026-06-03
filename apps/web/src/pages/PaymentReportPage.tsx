@@ -382,15 +382,15 @@ export default function PaymentReportPage() {
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '11px 14px',
-  border: '1.5px solid var(--color-border)',
+  border: '1px solid var(--color-border)',
   borderRadius: 10,
   fontSize: '1rem',
   marginTop: 6,
-  background: '#fff',
+  background: 'var(--color-surface-2)',
   color: 'var(--color-text)',
   fontFamily: 'inherit',
   appearance: 'none',
   WebkitAppearance: 'none',
   outline: 'none',
-  transition: 'border-color 0.15s, box-shadow 0.15s',
+  transition: 'border-color 0.15s, box-shadow 0.15s, background 0.15s',
 }

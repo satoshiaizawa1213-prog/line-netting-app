@@ -72,11 +72,11 @@ export default function MembersPage() {
       </div>
 
       {/* 招待 */}
-      <div className="card" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0' }}>
+      <div className="card" style={{ background: 'var(--color-primary-light)', border: '1px solid rgba(6,199,85,.32)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
           <div>
-            <div className="section-title" style={{ color: '#15803d', marginBottom: 2 }}>メンバーを招待</div>
-            <p style={{ fontSize: '0.83rem', color: '#166534' }}>
+            <div className="section-title" style={{ marginBottom: 2 }}>メンバーを招待</div>
+            <p style={{ fontSize: '0.83rem', color: 'var(--color-text)' }}>
               招待リンクをコピーして LINE で共有しましょう。
             </p>
           </div>
@@ -88,11 +88,11 @@ export default function MembersPage() {
       </div>
 
       {/* 傾斜説明 */}
-      <div className="card" style={{ background: '#fafafa', border: '1px solid var(--color-border)' }}>
+      <div className="card" style={{ background: 'var(--color-bg-2)' }}>
         <div className="section-title">傾斜割について</div>
         <p style={{ fontSize: '0.82rem', color: 'var(--color-text-sub)', lineHeight: 1.6 }}>
           重みが大きいほど負担割合が増えます。デフォルトは全員 ×1。<br />
-          例）重み 2:1:1 で 1,000円 → <strong>500円・250円・250円</strong>
+          例）重み 2:1:1 で 1,000円 → <strong style={{ color: 'var(--color-text)' }}>500円・250円・250円</strong>
         </p>
       </div>
 
@@ -121,7 +121,7 @@ export default function MembersPage() {
                 {m.picture_url ? (
                   <img src={m.picture_url} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                 ) : (
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>👤</div>
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>👤</div>
                 )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>
