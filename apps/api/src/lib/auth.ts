@@ -105,7 +105,19 @@ export const authMiddleware = createMiddleware<any>(async (c, next) => {
     return c.json({ error: `Auth DB timeout: ${(e as Error).message}` }, 503)
   }
 
-  if (dbError || !data) return c.json({ error: 'DB error' }, 500)
+  if (dbError || !data) {
+    console.error('[auth] DB upsert failed - full error:', dbError)
+    console.error('[auth] DB upsert failed - error keys:', dbError && Object.keys(dbError as object).join(','))
+    console.error('[auth] DB upsert failed - error JSON:', JSON.stringify(dbError, Object.getOwnPropertyNames(dbError ?? {})))
+    console.error('[auth] DB upsert failed - data:', data)
+    console.error('[auth] DB upsert failed - profile.userId:', profile.userId)
+    return c.json({
+      error: 'DB error',
+      detail: (dbError as { message?: string; hint?: string; code?: string })?.message ?? 'no error message but data is null',
+      hint: (dbError as { hint?: string })?.hint,
+      code: (dbError as { code?: string })?.code,
+    }, 500)
+  }
 
   const user = data as AuthUser
 
