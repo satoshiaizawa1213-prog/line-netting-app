@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
@@ -18,6 +18,14 @@ export default function HomePage() {
   const qc       = useQueryClient()
   const [showSwitcher, setShowSwitcher] = useState(false)
   const [theme, setTheme] = useTheme()
+
+  // LPから「?pick=1」付きで開かれた場合、自動的にグループ選択シートを開く
+  useEffect(() => {
+    if (sessionStorage.getItem('openSwitcher') === '1') {
+      sessionStorage.removeItem('openSwitcher')
+      setShowSwitcher(true)
+    }
+  }, [])
 
   function reload() {
     qc.invalidateQueries({ queryKey: ['payments',  groupId] })

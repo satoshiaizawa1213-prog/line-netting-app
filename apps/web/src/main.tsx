@@ -173,6 +173,10 @@ async function bootstrap() {
       localStorage.removeItem('groupId')
       sessionStorage.clear()
     }
+    // ?pick=1 はLPからの誘導。アプリ起動時にグループ選択シートを開く
+    if (urlParams.get('pick') === '1') {
+      sessionStorage.setItem('openSwitcher', '1')
+    }
     const gidFromUrl   = urlParams.get('gid')
     const tokenFromUrl = urlParams.get('token') ?? ''
     const ctx = getGroupContext()

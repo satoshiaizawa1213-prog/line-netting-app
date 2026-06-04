@@ -806,7 +806,8 @@
 <script>
   // LIFF ID を埋め込む（デプロイ後に LIFF ID を書き換え可能）
   const LIFF_ID = '2009695005-usQj5Qay'
-  const url = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : '#'
+  // ?pick=1: アプリ起動時にグループ選択画面を表示するためのフラグ
+  const url = LIFF_ID ? `https://liff.line.me/${LIFF_ID}?pick=1` : '#'
   document.getElementById('open-app').href = url
   document.getElementById('open-app-2').href = url
   document.getElementById('open-app-float').href = url
