@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getMyGroups, ensureGroup, deleteGroup, renameGroup } from '@/lib/api'
+import { useTheme } from '@/lib/theme'
 
 interface Props {
   currentGroupId: string
@@ -10,6 +11,7 @@ interface Props {
 
 export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
   const qc = useQueryClient()
+  const [theme, setTheme] = useTheme()
   const [creating, setCreating] = useState(false)
   const [groupName, setGroupName] = useState('')
   const [loading, setLoading] = useState(false)
@@ -279,6 +281,44 @@ export function GroupSwitcher({ currentGroupId, onClose, onSwitch }: Props) {
                 </div>
               )
             })}
+
+            {/* テーマ切替 */}
+            <div style={{ padding: '16px 20px 4px' }}>
+              <div style={{
+                fontSize: '0.68rem', fontWeight: 800,
+                color: 'var(--color-text-sub)',
+                textTransform: 'uppercase', letterSpacing: '0.1em',
+                marginBottom: 10,
+              }}>
+                テーマ
+              </div>
+              <div style={{
+                display: 'flex', gap: 6,
+                background: 'var(--color-surface-2)',
+                borderRadius: 12, padding: 4,
+                border: '1px solid var(--color-border)',
+              }}>
+                {([['dark', '🌙', 'ダーク'], ['light', '☀️', 'ライト']] as const).map(([key, icon, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setTheme(key)}
+                    style={{
+                      flex: 1, padding: '9px 0',
+                      fontSize: '0.85rem', fontWeight: 800,
+                      borderRadius: 8, border: 'none',
+                      background: theme === key ? 'var(--color-primary)' : 'transparent',
+                      color: theme === key ? 'var(--color-primary-ink)' : 'var(--color-text-sub)',
+                      boxShadow: theme === key ? 'var(--shadow-glow)' : 'none',
+                      cursor: 'pointer', transition: 'all 0.15s',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                    }}
+                  >
+                    <span style={{ fontSize: '0.9rem' }}>{icon}</span>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div style={{ padding: '12px 20px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button

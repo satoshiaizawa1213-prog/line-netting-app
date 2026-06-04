@@ -5,7 +5,11 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import { initLiff, getGroupContext, getAccessToken } from './lib/liff'
 import { ensureGroup, getMe } from './lib/api'
+import { applyInitialTheme } from './lib/theme'
 import './index.css'
+
+// ストレージから読み取ったテーマを最初の描画前に適用
+applyInitialTheme()
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -13,14 +17,15 @@ const queryClient = new QueryClient({
 
 const root = document.getElementById('root')!
 
-const DARK_BG = '#0A0E0D'
-const DARK_SURFACE = '#151D1A'
-const DARK_SURFACE_2 = '#1C2622'
-const DARK_BORDER = 'rgba(255,255,255,.09)'
-const DARK_TEXT = '#EAF2EE'
-const DARK_TEXT_2 = '#9FB1AA'
-const ACCENT = '#06C755'
-const ACCENT_INK = '#04160C'
+// CSS 変数で参照することでテーマ切替に自動追従
+const DARK_BG = 'var(--color-bg)'
+const DARK_SURFACE = 'var(--color-card)'
+const DARK_SURFACE_2 = 'var(--color-surface-2)'
+const DARK_BORDER = 'var(--color-border)'
+const DARK_TEXT = 'var(--color-text)'
+const DARK_TEXT_2 = 'var(--color-text-sub)'
+const ACCENT = 'var(--color-primary)'
+const ACCENT_INK = 'var(--color-primary-ink)'
 
 function showLoading() {
   root.innerHTML = `

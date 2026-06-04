@@ -19,7 +19,7 @@
 }
 
 :root {
-  /* ──── Brand / Accent ──── */
+  /* ──── Brand / Accent (テーマ共通) ──── */
   --color-primary:       #06C755;
   --color-primary-dark:  #05a849;
   --color-primary-light: rgba(6, 199, 85, 0.14);
@@ -31,22 +31,22 @@
   --color-warning:       #FF6B35;
   --color-warning-light: rgba(255, 107, 53, 0.12);
 
-  /* ──── Surfaces (LP と統一: ダークテーマ) ──── */
+  /* ──── Surfaces — ダークテーマ (デフォルト) ──── */
   --color-bg:            #0A0E0D;
   --color-bg-2:          #0E1413;
   --color-card:          #151D1A;
   --color-card-hover:    #1C2622;
   --color-surface-2:     #1C2622;
 
-  /* ──── Text ──── */
   --color-text:          #EAF2EE;
   --color-text-sub:      #9FB1AA;
   --color-text-muted:    #6C7C77;
 
-  /* ──── Borders ──── */
   --color-border:        rgba(255,255,255,.09);
   --color-border-strong: rgba(255,255,255,.14);
   --color-border-focus:  #06C755;
+
+  --bg-glow-strength:    0.10;       /* body 上部 緑グローの強さ */
 
   --radius:    14px;
   --radius-sm: 10px;
@@ -58,10 +58,33 @@
   --shadow-glow: 0 14px 46px -8px rgba(6,199,85,.45);
 }
 
+/* ──── ライトテーマ (白基調) ──── */
+[data-theme="light"] {
+  --color-bg:            #F3F4F6;
+  --color-bg-2:          #E5E7EB;
+  --color-card:          #FFFFFF;
+  --color-card-hover:    #FAFAFA;
+  --color-surface-2:     #F3F4F6;
+
+  --color-text:          #111827;
+  --color-text-sub:      #4B5563;
+  --color-text-muted:    #9CA3AF;
+
+  --color-border:        rgba(8, 24, 18, 0.10);
+  --color-border-strong: rgba(8, 24, 18, 0.16);
+
+  --bg-glow-strength:    0.06;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow:    0 4px 12px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.04);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.10), 0 4px 8px rgba(0,0,0,.05);
+  --shadow-glow: 0 6px 24px -2px rgba(6,199,85,.32);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', sans-serif;
   background:
-    radial-gradient(70% 30% at 50% -5%, rgba(6,199,85,.10), transparent 70%),
+    radial-gradient(70% 30% at 50% -5%, rgba(6,199,85, var(--bg-glow-strength)), transparent 70%),
     var(--color-bg);
   color: var(--color-text);
   min-height: 100dvh;
@@ -69,6 +92,7 @@ body {
   margin: 0 auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ============ BUTTONS ============ */
