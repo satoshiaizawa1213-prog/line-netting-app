@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
+import { useTheme } from '@/lib/theme'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import { GroupSwitcher } from '@/components/GroupSwitcher'
@@ -15,6 +16,7 @@ export default function HomePage() {
   const navigate = useNavigate()
   const qc       = useQueryClient()
   const [showSwitcher, setShowSwitcher] = useState(false)
+  const [theme, setTheme] = useTheme()
 
   function reload() {
     qc.invalidateQueries({ queryKey: ['payments',  groupId] })
@@ -321,6 +323,37 @@ export default function HomePage() {
         >
           ❓ 使い方ガイド
         </a>
+      </div>
+
+      {/* テーマ切替 */}
+      <div>
+        <div className="section-title" style={{ marginBottom: 8 }}>テーマ</div>
+        <div style={{
+          display: 'flex', gap: 6,
+          background: 'var(--color-surface-2)',
+          borderRadius: 12, padding: 4,
+          border: '1px solid var(--color-border)',
+        }}>
+          {([['dark', '🌙', 'ダーク'], ['light', '☀️', 'ライト']] as const).map(([key, icon, label]) => (
+            <button
+              key={key}
+              onClick={() => setTheme(key)}
+              style={{
+                flex: 1, padding: '10px 0',
+                fontSize: '0.88rem', fontWeight: 800,
+                borderRadius: 8, border: 'none',
+                background: theme === key ? 'var(--color-primary)' : 'transparent',
+                color: theme === key ? 'var(--color-primary-ink)' : 'var(--color-text-sub)',
+                boxShadow: theme === key ? 'var(--shadow-glow)' : 'none',
+                cursor: 'pointer', transition: 'all 0.15s',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
+            >
+              <span style={{ fontSize: '1rem' }}>{icon}</span>
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <AdBanner />
