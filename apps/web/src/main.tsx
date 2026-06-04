@@ -173,8 +173,19 @@ async function bootstrap() {
       localStorage.removeItem('groupId')
       sessionStorage.clear()
     }
-    // ?pick=1 はLPからの誘導。アプリ起動時にグループ選択シートを開く
-    if (urlParams.get('pick') === '1') {
+    // LPからの誘導でグループ選択シートを開く判定:
+    // - ?pick=1 クエリパラメーター (LIFFが保持してくれた場合)
+    // - localStorage.openSwitcherAt が直近5分以内 (LIFFリダイレクトで?が失われた場合のフォールバック)
+    const pickFromQuery = urlParams.get('pick') === '1'
+    let pickFromStorage = false
+    try {
+      const ts = parseInt(localStorage.getItem('openSwitcherAt') ?? '0', 10)
+      pickFromStorage = ts > 0 && Date.now() - ts < 5 * 60 * 1000
+      if (pickFromStorage) localStorage.removeItem('openSwitcherAt')
+    } catch {
+      // ignore
+    }
+    if (pickFromQuery || pickFromStorage) {
       sessionStorage.setItem('openSwitcher', '1')
     }
     const gidFromUrl   = urlParams.get('gid')

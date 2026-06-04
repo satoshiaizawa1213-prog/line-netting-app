@@ -806,11 +806,23 @@
 <script>
   // LIFF ID を埋め込む（デプロイ後に LIFF ID を書き換え可能）
   const LIFF_ID = '2009695005-usQj5Qay'
-  // ?pick=1: アプリ起動時にグループ選択画面を表示するためのフラグ
   const url = LIFF_ID ? `https://liff.line.me/${LIFF_ID}?pick=1` : '#'
   document.getElementById('open-app').href = url
   document.getElementById('open-app-2').href = url
   document.getElementById('open-app-float').href = url
+
+  // LP のCTAがクリックされたら localStorage にタイムスタンプを記録
+  // (LIFFリダイレクトで?pick=1が失われても確実にグループ選択シートを開けるように)
+  function markOpenSwitcher() {
+    try {
+      localStorage.setItem('openSwitcherAt', String(Date.now()))
+    } catch (e) {
+      // localStorageアクセス不可時は何もしない (クエリパラメーター側で動作)
+    }
+  }
+  document.getElementById('open-app').addEventListener('click', markOpenSwitcher)
+  document.getElementById('open-app-2').addEventListener('click', markOpenSwitcher)
+  document.getElementById('open-app-float').addEventListener('click', markOpenSwitcher)
 
   // スクロールでフェードイン
   const fadeEls = document.querySelectorAll('.reveal')
