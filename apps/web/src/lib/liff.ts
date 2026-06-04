@@ -49,6 +49,24 @@ export function closeWindow() {
   liff.closeWindow()
 }
 
+/**
+ * 外部ブラウザで URL を開く。
+ * LIFF コンテキスト内ではこれを使うことで Mini App は背後で開いたまま、
+ * ユーザーが戻りやすくなる。
+ * LIFF が利用不可な場合（PC 等）は新しいタブで開く。
+ */
+export function openExternal(url: string): void {
+  try {
+    if (liff.isInClient && liff.isInClient()) {
+      liff.openWindow({ url, external: true })
+      return
+    }
+  } catch {
+    // フォールバック
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+}
+
 export async function shareSettlementResult(text: string): Promise<boolean> {
   try {
     await liff.sendMessages([{ type: 'text', text }])

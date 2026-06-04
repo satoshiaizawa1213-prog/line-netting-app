@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { getGroupBalance, getPayments, getGroupInfo, getProposals, approvePayment } from '@/lib/api'
 import { useTheme } from '@/lib/theme'
+import { openExternal } from '@/lib/liff'
 import { usePullToRefresh } from '@/hooks/usePullToRefresh'
 import { PullRefreshIndicator } from '@/components/PullRefreshIndicator'
 import { GroupSwitcher } from '@/components/GroupSwitcher'
@@ -312,17 +313,19 @@ export default function HomePage() {
         >
           📋 精算履歴
         </button>
-        <a
-          href="/manual.html"
+        <button
+          onClick={() => openExternal('/manual.html')}
           style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
             flex: 1, fontSize: '0.85rem', color: 'var(--color-text-sub)', padding: '10px',
+            background: 'transparent',
             border: '1px dashed var(--color-border)', borderRadius: 10,
-            textDecoration: 'none', fontWeight: 500,
+            fontWeight: 500, cursor: 'pointer',
+            width: 'auto',
           }}
         >
           ❓ 使い方ガイド
-        </a>
+        </button>
       </div>
 
       {/* テーマ切替 */}
