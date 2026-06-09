@@ -11,11 +11,22 @@ import contact from './routes/contact'
 
 const app = new Hono()
 
-app.use('*', logger())
+// /contact のクエリパラメータには PII（氏名・メール・本文）が含まれるため
+// ログに残さないようカスタムロガーを使う
+app.use('*', logger((message: string, ...rest: string[]) => {
+  const masked = message.replace(
+    /(\/api)?\/contact\?[^\s]+/g,
+    (m) => m.split('?')[0] + '?[REDACTED]'
+  )
+  console.log(masked, ...rest)
+}))
 
 // CORS: 環境変数 CORS_ORIGINS（カンマ区切り）で許可オリジンを指定
 // Vercel環境変数に例: https://liff.line.me,https://line-netting-app.vercel.app
-const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
+// 本番でenv vars 未設定の事故を避けるため、production では localhost にフォールバックしない
+const isProd = process.env.NODE_ENV === 'production'
+const defaultOrigins = isProd ? '' : 'http://localhost:5173'
+const allowedOrigins = (process.env.CORS_ORIGINS ?? defaultOrigins)
   .split(',')
   .map((s) => s.trim())
   .filter(Boolean)
@@ -37,25 +48,29 @@ app.post('/ping', (c) => c.json({ ok: true, ts: Date.now() }))
  * 環境変数 CRON_SECRET が設定されている場合はそれで保護する。
  */
 app.get('/cron/keepalive', async (c) => {
+  // CRON_SECRET は必須（未設定なら拒否してアプリ規模等の情報漏洩を防ぐ）
   const cronSecret = process.env.CRON_SECRET
-  if (cronSecret) {
-    const auth = c.req.header('authorization') ?? ''
-    if (auth !== `Bearer ${cronSecret}`) {
-      return c.json({ error: 'Unauthorized' }, 401)
-    }
+  if (!cronSecret) {
+    console.error('[keepalive] CRON_SECRET is not set')
+    return c.json({ error: 'Not configured' }, 503)
+  }
+  const auth = c.req.header('authorization') ?? ''
+  if (auth !== `Bearer ${cronSecret}`) {
+    return c.json({ error: 'Unauthorized' }, 401)
   }
 
-  const started = Date.now()
-  const { count, error } = await db
+  // 軽量SELECT（head: true で行データは取得しない）
+  const { error } = await db
     .from('users')
     .select('id', { count: 'exact', head: true })
 
   if (error) {
-    console.error('[keepalive] DB error:', error)
-    return c.json({ ok: false, error: error.message }, 503)
+    console.error('[keepalive] DB error:', error.message)
+    return c.json({ ok: false }, 503)
   }
 
-  return c.json({ ok: true, users_count: count, elapsed_ms: Date.now() - started })
+  // 件数等の機密情報は返さない
+  return c.json({ ok: true })
 })
 
 /** 現在ログイン中のユーザー情報を返す */

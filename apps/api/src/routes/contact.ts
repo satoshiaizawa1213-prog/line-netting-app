@@ -23,13 +23,16 @@ contact.post('/', async (c) => {
     return c.json({ error: '送信回数の上限に達しました。時間をおいてからお試しください。' }, 429)
   }
 
-  console.log('[contact] POST received')
+  // ※ logger() ミドルウェアが URL を出力するため、機微情報（氏名・メール・本文）が
+  //   Vercel ログに残らないよう、ここでは追加ログを最小化する。
+  //   ※ Vercel側のリクエストログには URL のクエリパラメータが残ってしまうため、
+  //   将来的に POST body 化を検討（hono/node-server の body 読取問題が解消後）。
+
   // 他のルートと同じくクエリパラメーターで受け取る
   const name      = c.req.query('name')
   const email     = c.req.query('email')
   const message   = c.req.query('message')
   const _honeypot = c.req.query('_honeypot')
-  console.log('[contact] params:', { name: !!name, email: !!email, message: !!message })
 
   // ハニーポット: ボットは隠しフィールドを埋める
   if (_honeypot) return c.json({ ok: true }) // サイレント無視
@@ -53,15 +56,9 @@ contact.post('/', async (c) => {
 
   const ownerLineUserId = process.env.OWNER_LINE_USER_ID
   const lineToken = process.env.LINE_CHANNEL_ACCESS_TOKEN
-  console.log('[contact] OWNER_LINE_USER_ID set:', !!ownerLineUserId)
-  console.log('[contact] LINE_CHANNEL_ACCESS_TOKEN set:', !!lineToken)
 
-  if (!ownerLineUserId) {
-    console.error('[contact] OWNER_LINE_USER_ID is not set')
-    return c.json({ error: '通知設定が未完了です。しばらくお待ちください。' }, 503)
-  }
-  if (!lineToken) {
-    console.error('[contact] LINE_CHANNEL_ACCESS_TOKEN is not set')
+  if (!ownerLineUserId || !lineToken) {
+    console.error('[contact] env vars missing:', { owner: !!ownerLineUserId, token: !!lineToken })
     return c.json({ error: '通知設定が未完了です。しばらくお待ちください。' }, 503)
   }
 
@@ -74,8 +71,6 @@ contact.post('/', async (c) => {
     '💬 内容:',
     message.trim(),
   ].join('\n')
-
-  console.log('[contact] Sending LINE push to:', ownerLineUserId.slice(0, 5) + '...')
 
   // 8秒タイムアウト付きで LINE API を呼ぶ
   let results
@@ -91,10 +86,8 @@ contact.post('/', async (c) => {
     return c.json({ error: 'LINE通知の送信に失敗しました。時間をおいてからお試しください。' }, 500)
   }
 
-  console.log('[contact] LINE push result:', JSON.stringify(results[0]))
-
   if (!results[0]?.ok) {
-    console.error('[contact] LINE push failed:', results[0])
+    console.error('[contact] LINE push failed: status=', results[0]?.status)
     return c.json({ error: 'LINE通知の送信に失敗しました。時間をおいてからお試しください。' }, 500)
   }
 

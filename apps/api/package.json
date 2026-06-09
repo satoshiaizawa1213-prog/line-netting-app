@@ -8,10 +8,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hono/node-server": "^1.11.1",
+    "@hono/node-server": "^1.13.7",
     "@supabase/supabase-js": "^2.43.4",
     "dotenv": "^16.4.5",
-    "hono": "^4.3.11",
+    "hono": "^4.12.21",
     "jose": "^6.2.2"
   },
   "devDependencies": {
